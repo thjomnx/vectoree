@@ -1,9 +1,9 @@
 defmodule DataTree.Parameter do
   alias DataTree.{TimeInfo, Status}
 
-  defstruct [:name, leaves: [], time: TimeInfo.new, status: Status.new]
+  defstruct [:name, :type, :value, :unit, time: TimeInfo.new, status: Status.new]
 
-  def new(name, type, value\\ nil, unit \\ nil) do
-    %DataTree.Parameter{name: name, type: type, value: value, unit: unit}
+  def new(name, type \\ nil, value \\ nil, unit \\ nil) do
+    %__MODULE__{name: name, type: type, value: value, unit: unit}
   end
 end

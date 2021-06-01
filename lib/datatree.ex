@@ -2,25 +2,26 @@ defmodule DataTree do
   use GenServer
 
   def start_link(opts) do
-    table_name = Keyword.fetch!(opts, :name)
-    GenServer.start_link(__MODULE__, table_name, opts)
+    table = Keyword.fetch!(opts, :name)
+    GenServer.start_link(__MODULE__, table, opts)
   end
 
-  def put(table_name, path, node) do
-    GenServer.call(table_name, {:create, path, node})
+  def put(table, path, node) do
+    GenServer.call(table, {:create, path, node})
+    {:ok, node}
   end
 
-  def lookup(table_name, path) do
-    case :ets.lookup(table_name, path) do
+  def lookup(table, path) do
+    case :ets.lookup(table, path) do
       [{^path, node}] -> {:ok, node}
       [] -> :error
     end
   end
 
   @impl true
-  def init(table_name) do
-    table = :ets.new(table_name, [:named_table_name, read_concurrency: true])
-    {:ok, table}
+  def init(table) do
+    table_ref = :ets.new(table, [:named_table, read_concurrency: true])
+    {:ok, table_ref}
   end
 
   @impl true

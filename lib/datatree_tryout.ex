@@ -1,19 +1,17 @@
 defmodule DataTree.Tryout do
+  alias DataTree.Parameter
+
   def test do
-    DataTree.start_link(name: :mtree)
+    DataTree.start_link(name: :ptree)
 
-    DataTree.lookup(:mtree, "data")
+    {:ok, data} = DataTree.put(:ptree, "data", Parameter.new("data"))
 
-    DataTree.put(:mtree, "data", DataTree.Node.new("data"))
-    {:ok, n} = DataTree.lookup(:mtree, "data")
+    timestamp = DateTime.utc_now() |> DateTime.to_unix()
+    {:ok, ticks} = DataTree.put(:ptree, "data.ticks", Parameter.new("ticks", :int32, timestamp, :milliseconds))
 
-    ts = DateTime.utc_now() |> DateTime.to_unix()
-    l = DataTree.Leaf.new("ticks", :int32, ts, :milliseconds)
-    n = DataTree.Node.add_leaf(n, l)
+    IO.inspect(data)
+    IO.inspect(ticks)
 
-    DataTree.put(:mtree, "data", n)
-    {:ok, last} = DataTree.lookup(:mtree, "data")
-
-    last
+    IO.puts(ticks.value)
   end
 end
