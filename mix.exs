@@ -16,7 +16,7 @@ defmodule DataTree.MixProject do
     [
 #      applications: [:shards],
       extra_applications: [:logger],
-      mod: {DataTree.Tryout, []}
+      mod: {Tryout, []}
     ]
   end
 

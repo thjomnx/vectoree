@@ -1,6 +1,6 @@
-defmodule DataTree.Tryout do
+defmodule Tryout do
   use Application
-  alias DataTree.Parameter
+  alias DataTree.{Parameter, Path}
 
   def start(_type, _args) do
     run_proto()
@@ -30,6 +30,16 @@ defmodule DataTree.Tryout do
       end
     )
 
-    DataTree.lookup(:ptree, ["data", "param23"])
+    DataTree.lookup(:ptree, ["data", "param23"]) |> IO.inspect
+
+    p = Path.new({"data", "local", "objects"})
+    IO.inspect(p)
+
+    Path.get_parent(p) |> IO.puts
+    Path.append(p, "myClock") |> IO.puts
+    Path.append(p, ["remote", "peer", "bomb28"]) |> IO.puts
+    Path.append(p, {"remote", "peer", "studio54"}) |> IO.puts
+    Path.get_root(p) |> IO.puts
+    Path.new("data") |> Path.get_parent |> IO.puts
   end
 end
