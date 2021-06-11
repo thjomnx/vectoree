@@ -1,5 +1,7 @@
 defmodule DataTree.Path do
 
+  @separator "."
+
   defstruct [segments: []]
 
   def new(segment) when is_binary(segment), do: init([segment])
@@ -10,17 +12,38 @@ defmodule DataTree.Path do
     %__MODULE__{segments: segments}
   end
 
+  def separator(), do: @separator
+
+  def get_root(path) when is_struct(path, __MODULE__) do
+    List.last(path.segments) |> new
+  end
+
   def get_parent(path) when is_struct(path, __MODULE__) do
-    tl(path.segments) |> init
+    case path.segments do
+      [_ | []] -> path
+      [_ | tail] -> tail |> init
+    end
   end
 
   def append(path, segment) when is_struct(path, __MODULE__) and is_binary(segment) do
     [segment | path.segments] |> init
   end
 
-  def append(path, segments) when is_tuple(segments) do
-    list = Tuple.to_list(segments) |> Enum.reverse
-    list ++ path.segments |> init
+  def append(path, segments) when is_struct(path, __MODULE__) and is_tuple(segments) do
+    append_list(path.segments, Tuple.to_list(segments)) |> init
+  end
+
+  def append(path, segments) when is_struct(path, __MODULE__) and is_list(segments) do
+    append_list(path.segments, segments) |> init
+  end
+
+  defp append_list(segments, []), do: segments
+  defp append_list(segments, [head | tail]), do: append_list([head | segments], tail)
+
+  defimpl String.Chars, for: DataTree.Path do
+    def to_string(path) do
+      Enum.reverse(path.segments) |> Enum.join(DataTree.Path.separator)
+    end
   end
 
 end
