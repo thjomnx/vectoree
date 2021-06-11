@@ -6,7 +6,8 @@ defmodule DataTree do
     GenServer.start_link(__MODULE__, table, opts)
   end
 
-  def put(table, path, node) do
+  def put(table, node) do
+    path = node.path ++ [node.name]
     GenServer.call(table, {:create, path, node})
     {:ok, node}
   end
