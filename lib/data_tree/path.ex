@@ -81,5 +81,4 @@ defmodule DataTree.Path do
       Enum.reverse(path.segments) |> Enum.join(DataTree.Path.separator)
     end
   end
-
 end

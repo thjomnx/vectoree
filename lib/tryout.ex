@@ -1,5 +1,6 @@
 defmodule Tryout do
   use Application
+
   alias DataTree.{Parameter, Path}
 
   def start(_type, _args) do
