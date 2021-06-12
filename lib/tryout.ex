@@ -35,11 +35,31 @@ defmodule Tryout do
     p = Path.new({"data", "local", "objects"})
     IO.inspect(p)
 
-    Path.get_parent(p) |> IO.puts
+    Path.parent(p) |> IO.puts
     Path.append(p, "myClock") |> IO.puts
     Path.append(p, ["remote", "peer", "bomb28"]) |> IO.puts
     Path.append(p, {"remote", "peer", "studio54"}) |> IO.puts
-    Path.get_root(p) |> IO.puts
-    Path.new("data") |> Path.get_parent |> IO.puts
+    Path.base(p) |> IO.puts
+    Path.new("data") |> Path.parent |> IO.puts
+    Path.sibling(p, "monitors") |> IO.puts
+    Path.new(["", "data", "", "", "", "raw", "", "proj.x"]) |> IO.puts
+
+    IO.puts("-------------------------")
+
+    Path.starts_with?(p, Path.parent(p)) |> IO.puts
+    Path.starts_with?(p, Path.new("data")) |> IO.puts
+    Path.starts_with?(p, Path.new("local")) |> IO.puts
+    Path.starts_with?(p, Path.new("objects")) |> IO.puts
+    Path.starts_with?(p, Path.new({"data", "remote"})) |> IO.puts
+    Path.starts_with?(p, Path.append(p, "blah")) |> IO.puts
+
+    IO.puts("-------------------------")
+
+    Path.ends_with?(p, Path.parent(p)) |> IO.puts
+    Path.ends_with?(p, Path.new("data")) |> IO.puts
+    Path.ends_with?(p, Path.new("local")) |> IO.puts
+    Path.ends_with?(p, Path.new("objects")) |> IO.puts
+    Path.ends_with?(p, Path.new({"local", "objects"})) |> IO.puts
+    Path.ends_with?(p, Path.append(p, "blah")) |> IO.puts
   end
 end
