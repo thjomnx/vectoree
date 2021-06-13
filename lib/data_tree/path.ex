@@ -17,7 +17,11 @@ defmodule DataTree.Path do
     %__MODULE__{segments: segments |> normalize |> Enum.reverse}
   end
 
-  defp normalize(segments) do
+  def normalize(segment) when is_binary(segment) do
+    String.replace(segment, @separator, @separator_replacement)
+  end
+
+  def normalize(segments) when is_list(segments) do
     segments
       |> Stream.filter(&(String.length(&1) > 0))
       |> Enum.map(&(String.replace(&1, @separator, @separator_replacement)))
@@ -25,38 +29,42 @@ defmodule DataTree.Path do
 
   def separator(), do: @separator
 
-  def base(path) when is_struct(path, __MODULE__) do
-    List.last(path.segments) |> new
+  def root(%__MODULE__{segments: segments}) do
+    List.last(segments) |> new
   end
 
-  def parent(path) when is_struct(path, __MODULE__) do
-    case path.segments do
+  def parent(%__MODULE__{segments: segments} = path) do
+    case segments do
       [_ | []] -> path
       [_ | tail] -> tail |> init
     end
   end
 
-  def sibling(path, segment) when is_struct(path, __MODULE__) and is_binary(segment) do
+  def base(%__MODULE__{segments: segments}) do
+    hd(segments) |> new
+  end
+
+  def sibling(%__MODULE__{} = path, segment) when is_binary(segment) do
     [segment | parent(path).segments] |> init
   end
 
-  def append(path, segment) when is_struct(path, __MODULE__) and is_binary(segment) do
-    [segment | path.segments] |> init
+  def append(%__MODULE__{segments: segments}, segment) when is_binary(segment) do
+    [segment | segments] |> init
   end
 
-  def append(path, segments) when is_struct(path, __MODULE__) and is_tuple(segments) do
+  def append(%__MODULE__{} = path, segments) when is_tuple(segments) do
     append_list(path.segments, Tuple.to_list(segments)) |> init
   end
 
-  def append(path, segments) when is_struct(path, __MODULE__) and is_list(segments) do
+  def append(%__MODULE__{} = path, segments) when is_list(segments) do
     append_list(path.segments, segments) |> init
   end
 
   defp append_list(segments, []), do: segments
   defp append_list(segments, [head | tail]), do: append_list([head | segments], tail)
 
-  def starts_with?(path, prefix) when is_struct(path, __MODULE__) do
-    fun = &(List.starts_with?(path.segments |> Enum.reverse, &1))
+  def starts_with?(%__MODULE__{segments: segments}, prefix) do
+    fun = &(List.starts_with?(segments |> Enum.reverse, &1))
 
     cond do
       is_binary(prefix) -> fun.([prefix])
@@ -66,8 +74,8 @@ defmodule DataTree.Path do
     end
   end
 
-  def ends_with?(path, suffix) when is_struct(path, __MODULE__) do
-    fun = &(List.starts_with?(path.segments, &1))
+  def ends_with?(%__MODULE__{segments: segments}, suffix) do
+    fun = &(List.starts_with?(segments, &1))
 
     cond do
       is_binary(suffix) -> fun.([suffix])

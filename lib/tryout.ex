@@ -11,11 +11,11 @@ defmodule Tryout do
   def run_proto do
     DataTree.start_link(name: :ptree)
 
-    {:ok, data} = DataTree.put(:ptree, Parameter.new([], "data"))
-    {:ok, local} = DataTree.put(:ptree, Parameter.new(["data"], "local"))
+    {:ok, data} = DataTree.put(:ptree, Parameter.new(Path.new(""), "data"))
+    {:ok, local} = DataTree.put(:ptree, Parameter.new(Path.new("data"), "local"))
 
     timestamp = DateTime.utc_now() |> DateTime.to_unix()
-    {:ok, ticks} = DataTree.put(:ptree, Parameter.new(["data", "local"], "ticks", :int32, timestamp, :milliseconds))
+    {:ok, ticks} = DataTree.put(:ptree, Parameter.new(Path.new(["data", "local"]), "ticks", :int32, timestamp, :milliseconds))
 
     IO.inspect(data)
     IO.inspect(local)
@@ -27,11 +27,13 @@ defmodule Tryout do
       1..9999,
       fn i ->
         name = "param" <> Integer.to_string(i)
-        DataTree.put(:ptree, Parameter.new(["data"], name))
+        DataTree.put(:ptree, Parameter.new(Path.new("data"), name))
       end
     )
 
-    DataTree.lookup(:ptree, ["data", "param23"]) |> IO.inspect
+    DataTree.lookup(:ptree, Path.new(["data", "param23"])) |> IO.inspect
+
+    # -----------
 
     p = Path.new({"data", "local", "objects"})
     IO.inspect(p)
@@ -40,7 +42,7 @@ defmodule Tryout do
     Path.append(p, "myClock") |> IO.puts
     Path.append(p, ["remote", "peer", "bomb28"]) |> IO.puts
     Path.append(p, {"remote", "peer", "studio54"}) |> IO.puts
-    Path.base(p) |> IO.puts
+    Path.root(p) |> IO.puts
     Path.new("data") |> Path.parent |> IO.puts
     Path.sibling(p, "monitors") |> IO.puts
     Path.new(["", "data", "", "", "", "raw", "", "proj.x"]) |> IO.puts

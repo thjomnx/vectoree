@@ -23,16 +23,22 @@ defmodule DataTree.PathTest do
     assert is_struct(Path.new(["a", "b", "c"]), Path)
   end
 
-  test "base" do
+  test "root" do
     p = Path.new(["a", "b", "c"])
 
-    assert Path.base(p) == Path.new("a")
+    assert Path.root(p) == Path.new("a")
   end
 
   test "parent" do
     p = Path.new(["a", "b", "c"])
 
     assert Path.parent(p) == Path.new(["a", "b"])
+  end
+
+  test "base" do
+    p = Path.new(["a", "b", "c"])
+
+    assert Path.base(p) == Path.new("c")
   end
 
   test "sibling" do
