@@ -12,14 +12,62 @@ defmodule DataTree.PathTest do
   end
 
   test "new via binary" do
-    assert is_struct(Path.new("data"), Path)
+    assert is_struct(Path.new("a"), Path)
   end
 
   test "new via tuple" do
-    assert is_struct(Path.new({"data", "local", "objects"}), Path)
+    assert is_struct(Path.new({"a", "b", "c"}), Path)
   end
 
   test "new via list" do
-    assert is_struct(Path.new(["data", "local", "objects"]), Path)
+    assert is_struct(Path.new(["a", "b", "c"]), Path)
+  end
+
+  test "base" do
+    p = Path.new(["a", "b", "c"])
+
+    assert Path.base(p) == Path.new("a")
+  end
+
+  test "parent" do
+    p = Path.new(["a", "b", "c"])
+
+    assert Path.parent(p) == Path.new(["a", "b"])
+  end
+
+  test "sibling" do
+    p = Path.new(["a", "b", "c"])
+
+    assert Path.sibling(p, "d") == Path.new(["a", "b", "d"])
+  end
+
+  test "append" do
+    p = Path.new(["a", "b", "c"])
+
+    assert Path.append(p, "d") == Path.new(["a", "b", "c", "d"])
+    assert Path.append(p, {"d", "e"}) == Path.new(["a", "b", "c", "d", "e"])
+    assert Path.append(p, ["d", "e"]) == Path.new(["a", "b", "c", "d", "e"])
+  end
+
+  test "starts_with?" do
+    p = Path.new(["a", "b", "c"])
+
+    assert Path.starts_with?(p, Path.parent(p))
+    assert Path.starts_with?(p, Path.new("a"))
+    refute Path.starts_with?(p, Path.new("b"))
+    refute Path.starts_with?(p, Path.new("c"))
+    refute Path.starts_with?(p, Path.new({"a", "d"}))
+    refute Path.starts_with?(p, Path.append(p, "x"))
+  end
+
+  test "ends_with?" do
+    p = Path.new(["a", "b", "c"])
+
+    refute Path.ends_with?(p, Path.parent(p))
+    refute Path.ends_with?(p, Path.new("a"))
+    refute Path.ends_with?(p, Path.new("b"))
+    assert Path.ends_with?(p, Path.new("c"))
+    assert Path.ends_with?(p, Path.new({"b", "c"}))
+    refute Path.ends_with?(p, Path.append(p, "x"))
   end
 end

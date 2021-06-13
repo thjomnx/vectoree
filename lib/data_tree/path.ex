@@ -1,10 +1,11 @@
 defmodule DataTree.Path do
 
   @separator "."
+  @separator_replacement "_"
 
   defstruct [segments: []]
 
-  def new(segment) when is_binary(segment), do: init([segment])
+  def new(segment) when is_binary(segment), do: [segment] |> init
   def new(segments) when is_tuple(segments), do: Tuple.to_list(segments) |> init_reversed
   def new(segments) when is_list(segments), do: segments |> init_reversed
 
@@ -18,8 +19,8 @@ defmodule DataTree.Path do
 
   defp normalize(segments) do
     segments
-      |> Enum.filter(&(String.length(&1) > 0))
-      |> Enum.map(&(String.replace(&1, ".", "_")))
+      |> Stream.filter(&(String.length(&1) > 0))
+      |> Enum.map(&(String.replace(&1, @separator, @separator_replacement)))
   end
 
   def separator(), do: @separator
