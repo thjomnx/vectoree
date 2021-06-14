@@ -36,14 +36,19 @@ defmodule DataTree do
     path = Path.append(parameter.path, parameter.name)
     :ets.insert(table, {path, parameter})
 
-    parent_path = parameter.path
-    parent = case :ets.lookup(table, parent_path) do
-      [{^parent_path, p}] -> p
-    end
-
-    parent = Parameter.add_child(parent, parameter.name)
-    :ets.insert(table, {parent_path, parent})
+    visit_parent(table, parameter)
 
     {:reply, from, table}
+  end
+
+  defp visit_parent(table, %Parameter{path: path, name: name}) do
+    case :ets.lookup(table, path) do
+      [{^path, parent}] ->
+        :ets.insert(table, {path, Parameter.add_child(parent, name)})
+      [] ->
+        new_parent = Parameter.new(Path.parent(path), Path.basename(path))
+        :ets.insert(table, {path, new_parent})
+        visit_parent(table, new_parent)
+    end
   end
 end

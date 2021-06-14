@@ -24,7 +24,7 @@ defmodule Tryout do
     IO.puts(ticks.value)
 
     Enum.map(
-      1..9999,
+      18..28,
       fn i ->
         name = "param" <> Integer.to_string(i)
         DataTree.put(:ptree, Parameter.new(Path.new("data"), name))

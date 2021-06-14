@@ -35,13 +35,24 @@ defmodule DataTree.Path do
 
   def parent(%__MODULE__{segments: segments} = path) do
     case segments do
+      [] -> path
       [_ | []] -> path
       [_ | tail] -> tail |> init
     end
   end
 
-  def base(%__MODULE__{segments: segments}) do
-    hd(segments) |> new
+  def base(%__MODULE__{segments: segments} = path) do
+    case segments do
+      [head | _] -> head |> new
+      _ -> path
+    end
+  end
+
+  def basename(%__MODULE__{segments: segments}) do
+    case segments do
+      [head | _] -> head
+      _ -> ""
+    end
   end
 
   def sibling(%__MODULE__{} = path, segment) when is_binary(segment) do
