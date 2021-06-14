@@ -39,9 +39,8 @@ defmodule DataTree.Path do
 
   def parent(%__MODULE__{segments: segments} = path) do
     case segments do
-      [] -> path
-      [_ | []] -> path
       [_ | tail] -> tail |> init
+      _ -> path
     end
   end
 
