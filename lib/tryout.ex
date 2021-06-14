@@ -11,11 +11,11 @@ defmodule Tryout do
   def run_proto do
     DataTree.start_link(name: :ptree)
 
-    {:ok, data} = DataTree.put(:ptree, Parameter.new(Path.new(""), "data"))
-    {:ok, local} = DataTree.put(:ptree, Parameter.new(Path.new("data"), "local"))
+    {:ok, data} = DataTree.insert(:ptree, Parameter.new(Path.new(""), "data"))
+    {:ok, local} = DataTree.insert(:ptree, Parameter.new(Path.new("data"), "local"))
 
     timestamp = DateTime.utc_now() |> DateTime.to_unix()
-    {:ok, ticks} = DataTree.put(:ptree, Parameter.new(Path.new(["data", "local"]), "ticks", :int32, timestamp, :milliseconds))
+    {:ok, ticks} = DataTree.insert(:ptree, Parameter.new(Path.new(["data", "local"]), "ticks", :int32, timestamp, :milliseconds))
 
     IO.inspect(data)
     IO.inspect(local)
@@ -27,7 +27,7 @@ defmodule Tryout do
       18..28,
       fn i ->
         name = "param" <> Integer.to_string(i)
-        DataTree.put(:ptree, Parameter.new(Path.new("data"), name))
+        DataTree.insert(:ptree, Parameter.new(Path.new("data"), name))
       end
     )
 

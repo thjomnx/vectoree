@@ -8,8 +8,8 @@ defmodule DataTree do
     GenServer.start_link(__MODULE__, table, opts)
   end
 
-  def put(table, parameter) do
-    GenServer.call(table, {:create, parameter})
+  def insert(table, parameter) do
+    GenServer.call(table, {:insert, parameter})
     {:ok, parameter}
   end
 
@@ -32,23 +32,20 @@ defmodule DataTree do
   end
 
   @impl true
-  def handle_call({:create, parameter}, from, table) do
-    path = Path.append(parameter.path, parameter.name)
-    :ets.insert(table, {path, parameter})
-
-    visit_parent(table, parameter)
-
+  def handle_call({:insert, %Parameter{path: path, name: name} = parameter}, from, table) do
+    :ets.insert(table, {Path.append(path, name), parameter})
+    update_parent_of(table, parameter)
     {:reply, from, table}
   end
 
-  defp visit_parent(table, %Parameter{path: path, name: name}) do
-    case :ets.lookup(table, path) do
-      [{^path, parent}] ->
-        :ets.insert(table, {path, Parameter.add_child(parent, name)})
+  defp update_parent_of(table, %Parameter{path: parent_path, name: name}) do
+    case :ets.lookup(table, parent_path) do
+      [{^parent_path, parent}] ->
+        :ets.insert(table, {parent_path, Parameter.add_child(parent, name)})
       [] ->
-        new_parent = Parameter.new(Path.parent(path), Path.basename(path))
-        :ets.insert(table, {path, new_parent})
-        visit_parent(table, new_parent)
+        new_parent = Parameter.new(Path.parent(parent_path), Path.basename(parent_path))
+        :ets.insert(table, {parent_path, new_parent})
+        update_parent_of(table, new_parent)
     end
   end
 end
