@@ -1,7 +1,7 @@
 defmodule DataTree.Path do
 
   @separator "."
-  @separator_replacement "_"
+  @separator_replacement "_" <> Base.encode16(@separator, case: :lower)
 
   defstruct [segments: []]
 
@@ -17,6 +17,10 @@ defmodule DataTree.Path do
     %__MODULE__{segments: segments |> normalize |> Enum.reverse}
   end
 
+  defp init_raw(segment) when is_binary(segment) do
+    %__MODULE__{segments: [segment]}
+  end
+
   def normalize(segment) when is_binary(segment) do
     String.replace(segment, @separator, @separator_replacement)
   end
@@ -30,7 +34,7 @@ defmodule DataTree.Path do
   def separator(), do: @separator
 
   def root(%__MODULE__{segments: segments}) do
-    List.last(segments) |> new
+    List.last(segments) |> init_raw
   end
 
   def parent(%__MODULE__{segments: segments} = path) do
@@ -43,7 +47,7 @@ defmodule DataTree.Path do
 
   def base(%__MODULE__{segments: segments} = path) do
     case segments do
-      [head | _] -> head |> new
+      [head | _] -> head |> init_raw
       _ -> path
     end
   end

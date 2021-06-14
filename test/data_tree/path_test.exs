@@ -13,6 +13,7 @@ defmodule DataTree.PathTest do
 
   test "new via binary" do
     assert is_struct(Path.new("a"), Path)
+    assert Path.new("a.b.c") |> to_string == "a_2eb_2ec"
   end
 
   test "new via tuple" do
@@ -39,6 +40,12 @@ defmodule DataTree.PathTest do
     p = Path.new(["a", "b", "c"])
 
     assert Path.base(p) == Path.new("c")
+  end
+
+  test "basename" do
+    p = Path.new(["a", "b", "c"])
+
+    assert Path.basename(p) == "c"
   end
 
   test "sibling" do
