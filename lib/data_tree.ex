@@ -1,7 +1,7 @@
 defmodule DataTree do
   use GenServer
 
-  alias DataTree.{Parameter, Path}
+  alias DataTree.Parameter
 
   def start_link(opts) do
     table = Keyword.fetch!(opts, :name)
@@ -32,8 +32,8 @@ defmodule DataTree do
   end
 
   @impl true
-  def handle_call({:insert, %Parameter{path: path, name: name} = parameter}, from, table) do
-    :ets.insert(table, {Path.append(path, name), parameter})
+  def handle_call({:insert, %Parameter{} = parameter}, from, table) do
+    :ets.insert(table, {Parameter.abs_path(parameter), parameter})
     update_parent_of(table, parameter)
     {:reply, from, table}
   end
