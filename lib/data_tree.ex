@@ -43,9 +43,9 @@ defmodule DataTree do
       [{^parent_path, parent}] ->
         :ets.insert(table, {parent_path, Parameter.add_child(parent, name)})
       [] ->
-        new_parent = Parameter.new(Path.parent(parent_path), Path.basename(parent_path))
-        :ets.insert(table, {parent_path, new_parent})
-        update_parent_of(table, new_parent)
+        missing_parent = Parameter.new(parent_path)
+        :ets.insert(table, {parent_path, missing_parent})
+        update_parent_of(table, missing_parent)
     end
   end
 end

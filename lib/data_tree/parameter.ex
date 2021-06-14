@@ -3,9 +3,13 @@ defmodule DataTree.Parameter do
 
   defstruct [:path, :name, :type, :value, :unit, time: TimeInfo.new, status: Status.new, children: []]
 
-  def new(%Path{} = path, name, type \\ nil, value \\ nil, unit \\ nil) when is_binary(name) do
+  def new(%Path{} = full_path) do
+    new(Path.parent(full_path), Path.basename(full_path))
+  end
+
+  def new(%Path{} = parent_path, name, type \\ nil, value \\ nil, unit \\ nil) when is_binary(name) do
     normalized_name = Path.normalize(name)
-    %__MODULE__{path: path, name: normalized_name, type: type, value: value, unit: unit}
+    %__MODULE__{path: parent_path, name: normalized_name, type: type, value: value, unit: unit}
   end
 
   def add_child(%__MODULE__{} = parameter, name) when is_binary(name) do
