@@ -9,6 +9,10 @@ defmodule DataTree.Path do
   def new(segments) when is_tuple(segments), do: Tuple.to_list(segments) |> init_reversed
   def new(segments) when is_list(segments), do: segments |> init_reversed
 
+  def sigil_u(term, []) when is_binary(term) do
+    String.split(term, @separator) |> new
+  end
+
   defp init(segments) do
     %__MODULE__{segments: segments |> normalize}
   end

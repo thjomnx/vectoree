@@ -12,6 +12,10 @@ defmodule DataTree.Parameter do
     %__MODULE__{path: parent_path, name: normalized_name, type: type, value: value, unit: unit}
   end
 
+  def sigil_p(term, []) when is_binary(term) do
+    String.split(term, Path.separator) |> Path.new |> new
+  end
+
   def abs_path(%__MODULE__{path: path, name: name}) do
     Path.append(path, name)
   end
