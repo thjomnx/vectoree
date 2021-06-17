@@ -1,4 +1,4 @@
-defmodule DataTree.Path do
+defmodule DataTree.TreePath do
 
   @separator "."
   @separator_replacement "_" <> Base.encode16(@separator, case: :lower)
@@ -9,7 +9,7 @@ defmodule DataTree.Path do
   def new(segments) when is_tuple(segments), do: Tuple.to_list(segments) |> init_reversed
   def new(segments) when is_list(segments), do: segments |> init_reversed
 
-  def sigil_u(term, []) when is_binary(term) do
+  def sigil_t(term, []) when is_binary(term) do
     String.split(term, @separator) |> new
   end
 
@@ -103,9 +103,9 @@ defmodule DataTree.Path do
     end
   end
 
-  defimpl String.Chars, for: DataTree.Path do
+  defimpl String.Chars, for: DataTree.TreePath do
     def to_string(path) do
-      Enum.reverse(path.segments) |> Enum.join(DataTree.Path.separator)
+      Enum.reverse(path.segments) |> Enum.join(DataTree.TreePath.separator)
     end
   end
 end
