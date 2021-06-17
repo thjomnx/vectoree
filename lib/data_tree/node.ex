@@ -4,7 +4,9 @@ defmodule DataTree.Node do
   defstruct [:path, :name, :type, :value, :unit, time: TimeInfo.new, status: Status.new, children: []]
 
   def new(%TreePath{} = full_path) do
-    new(TreePath.parent(full_path), TreePath.basename(full_path))
+    parent = TreePath.parent(full_path)
+    base = TreePath.basename(full_path)
+    new(parent, base)
   end
 
   def new(%TreePath{} = parent_path, name, type \\ nil, value \\ nil, unit \\ nil) when is_binary(name) do
@@ -20,11 +22,14 @@ defmodule DataTree.Node do
     TreePath.append(path, name)
   end
 
+  def root?(%__MODULE__{path: path}), do: TreePath.level(path) <= 1
+  def leaf?(%__MODULE__{children: children}), do: Enum.empty?(children)
+
   def add_child(%__MODULE__{} = node, name) when is_binary(name) do
     normalized_name = TreePath.normalize(name)
 
     unless Enum.member?(node.children, normalized_name) do
-      new_children = List.insert_at(node.children, 0, normalized_name)
+      new_children = [normalized_name | node.children]
       %{node | children: new_children}
     else
       node

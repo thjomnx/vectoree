@@ -6,7 +6,6 @@ defmodule DataTree.TreePath do
   defstruct [segments: []]
 
   def new(segment) when is_binary(segment), do: [segment] |> init
-  def new(segments) when is_tuple(segments), do: Tuple.to_list(segments) |> init_reversed
   def new(segments) when is_list(segments), do: segments |> init_reversed
 
   def sigil_t(term, []) when is_binary(term) do
@@ -36,6 +35,10 @@ defmodule DataTree.TreePath do
   end
 
   def separator(), do: @separator
+
+  def level(%__MODULE__{segments: segments}) do
+    length(segments)
+  end
 
   def root(%__MODULE__{segments: segments}) do
     List.last(segments) |> init_raw
@@ -70,10 +73,6 @@ defmodule DataTree.TreePath do
     [segment | segments] |> init
   end
 
-  def append(%__MODULE__{} = path, segments) when is_tuple(segments) do
-    append_list(path.segments, Tuple.to_list(segments)) |> init
-  end
-
   def append(%__MODULE__{} = path, segments) when is_list(segments) do
     append_list(path.segments, segments) |> init
   end
@@ -82,11 +81,10 @@ defmodule DataTree.TreePath do
   defp append_list(segments, [head | tail]), do: append_list([head | segments], tail)
 
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
-    fun = &(List.starts_with?(segments |> Enum.reverse, &1))
+    fun = &(segments |> Enum.reverse |> List.starts_with?(&1))
 
     cond do
       is_binary(prefix) -> fun.([prefix])
-      is_tuple(prefix) -> fun.(Tuple.to_list(prefix))
       is_list(prefix) -> fun.(prefix)
       is_struct(prefix, __MODULE__) -> fun.(prefix.segments |> Enum.reverse)
     end
@@ -97,7 +95,6 @@ defmodule DataTree.TreePath do
 
     cond do
       is_binary(suffix) -> fun.([suffix])
-      is_tuple(suffix) -> fun.(Tuple.to_list(suffix))
       is_list(suffix) -> fun.(suffix)
       is_struct(suffix, __MODULE__) -> fun.(suffix.segments)
     end
@@ -105,7 +102,7 @@ defmodule DataTree.TreePath do
 
   defimpl String.Chars, for: DataTree.TreePath do
     def to_string(path) do
-      Enum.reverse(path.segments) |> Enum.join(DataTree.TreePath.separator)
+      path.segments |> Enum.reverse |> Enum.join(DataTree.TreePath.separator)
     end
   end
 end

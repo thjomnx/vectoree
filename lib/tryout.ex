@@ -37,13 +37,12 @@ defmodule Tryout do
 
     # -----------
 
-    p = TreePath.new({"data", "local", "objects"})
+    p = TreePath.new(["data", "local", "objects"])
     IO.inspect(p)
 
     TreePath.parent(p) |> IO.puts
     TreePath.append(p, "myClock") |> IO.puts
     TreePath.append(p, ["remote", "peer", "bomb28"]) |> IO.puts
-    TreePath.append(p, {"remote", "peer", "studio54"}) |> IO.puts
     TreePath.root(p) |> IO.puts
     TreePath.new("data") |> TreePath.parent |> IO.puts
     TreePath.sibling(p, "monitors") |> IO.puts
@@ -55,7 +54,7 @@ defmodule Tryout do
     TreePath.starts_with?(p, TreePath.new("data")) |> IO.puts
     TreePath.starts_with?(p, TreePath.new("local")) |> IO.puts
     TreePath.starts_with?(p, TreePath.new("objects")) |> IO.puts
-    TreePath.starts_with?(p, TreePath.new({"data", "remote"})) |> IO.puts
+    TreePath.starts_with?(p, TreePath.new(["data", "remote"])) |> IO.puts
     TreePath.starts_with?(p, TreePath.append(p, "blah")) |> IO.puts
 
     IO.puts("-------------------------")
@@ -64,7 +63,7 @@ defmodule Tryout do
     TreePath.ends_with?(p, TreePath.new("data")) |> IO.puts
     TreePath.ends_with?(p, TreePath.new("local")) |> IO.puts
     TreePath.ends_with?(p, TreePath.new("objects")) |> IO.puts
-    TreePath.ends_with?(p, TreePath.new({"local", "objects"})) |> IO.puts
+    TreePath.ends_with?(p, TreePath.new(["local", "objects"])) |> IO.puts
     TreePath.ends_with?(p, TreePath.append(p, "blah")) |> IO.puts
   end
 end

@@ -1,16 +1,16 @@
 defmodule DataTree do
   use GenServer
 
-  alias DataTree.Parameter
+  alias DataTree.Node
 
   def start_link(opts) do
     table = Keyword.fetch!(opts, :name)
     GenServer.start_link(__MODULE__, table, opts)
   end
 
-  def insert(table, parameter) do
-    GenServer.call(table, {:insert, parameter})
-    {:ok, parameter}
+  def insert(table, node) do
+    GenServer.call(table, {:insert, node})
+    {:ok, node}
   end
 
   def lookup(table, path) do
@@ -32,18 +32,18 @@ defmodule DataTree do
   end
 
   @impl true
-  def handle_call({:insert, %Parameter{} = parameter}, from, table) do
-    :ets.insert(table, {Parameter.abs_path(parameter), parameter})
-    update_parent_of(table, parameter)
+  def handle_call({:insert, %Node{} = node}, from, table) do
+    :ets.insert(table, {Node.abs_path(node), node})
+    update_parent_of(table, node)
     {:reply, from, table}
   end
 
-  defp update_parent_of(table, %Parameter{path: parent_path, name: name}) do
+  defp update_parent_of(table, %Node{path: parent_path, name: name}) do
     case :ets.lookup(table, parent_path) do
       [{^parent_path, parent}] ->
-        :ets.insert(table, {parent_path, Parameter.add_child(parent, name)})
+        :ets.insert(table, {parent_path, Node.add_child(parent, name)})
       [] ->
-        missing_parent = Parameter.new(parent_path)
+        missing_parent = Node.new(parent_path)
         :ets.insert(table, {parent_path, missing_parent})
         update_parent_of(table, missing_parent)
     end

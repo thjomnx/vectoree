@@ -16,10 +16,6 @@ defmodule DataTree.TreePathTest do
     assert TreePath.new("a.b.c") |> to_string == "a_2eb_2ec"
   end
 
-  test "new via tuple" do
-    assert is_struct(TreePath.new({"a", "b", "c"}), TreePath)
-  end
-
   test "new via list" do
     assert is_struct(TreePath.new(["a", "b", "c"]), TreePath)
   end
@@ -58,7 +54,6 @@ defmodule DataTree.TreePathTest do
     p = TreePath.new(["a", "b", "c"])
 
     assert TreePath.append(p, "d") == TreePath.new(["a", "b", "c", "d"])
-    assert TreePath.append(p, {"d", "e"}) == TreePath.new(["a", "b", "c", "d", "e"])
     assert TreePath.append(p, ["d", "e"]) == TreePath.new(["a", "b", "c", "d", "e"])
   end
 
@@ -69,7 +64,6 @@ defmodule DataTree.TreePathTest do
     assert TreePath.starts_with?(p, TreePath.new("a"))
     refute TreePath.starts_with?(p, TreePath.new("b"))
     refute TreePath.starts_with?(p, TreePath.new("c"))
-    refute TreePath.starts_with?(p, TreePath.new({"a", "d"}))
     refute TreePath.starts_with?(p, TreePath.append(p, "x"))
   end
 
@@ -80,7 +74,6 @@ defmodule DataTree.TreePathTest do
     refute TreePath.ends_with?(p, TreePath.new("a"))
     refute TreePath.ends_with?(p, TreePath.new("b"))
     assert TreePath.ends_with?(p, TreePath.new("c"))
-    assert TreePath.ends_with?(p, TreePath.new({"b", "c"}))
     refute TreePath.ends_with?(p, TreePath.append(p, "x"))
   end
 end
