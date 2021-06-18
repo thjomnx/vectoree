@@ -74,11 +74,8 @@ defmodule DataTree.TreePath do
   end
 
   def append(%__MODULE__{} = path, segments) when is_list(segments) do
-    append_list(path.segments, segments) |> init
+    Enum.reduce(segments, path.segments, &[&1 | &2]) |> init
   end
-
-  defp append_list(segments, []), do: segments
-  defp append_list(segments, [head | tail]), do: append_list([head | segments], tail)
 
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
     fun = &(segments |> Enum.reverse |> List.starts_with?(&1))
