@@ -37,7 +37,7 @@ defmodule Tryout do
       end
     )
 
-    DataTree.lookup(:ptree, ~n"data.param23") |> IO.inspect()
+    DataTree.lookup(:ptree, ~t"data.param23") |> IO.inspect()
 
     # -----------
 
