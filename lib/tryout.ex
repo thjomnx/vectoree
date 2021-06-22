@@ -13,6 +13,8 @@ defmodule Tryout do
   def run_proto do
     DataTree.start_link(name: :ptree)
 
+    # -----------
+
     {:ok, data} = DataTree.insert(:ptree, ~n"data")
     {:ok, local} = DataTree.insert(:ptree, ~n"data.local")
 
@@ -65,5 +67,16 @@ defmodule Tryout do
     TreePath.ends_with?(p, TreePath.new("objects")) |> IO.puts
     TreePath.ends_with?(p, TreePath.new(["local", "objects"])) |> IO.puts
     TreePath.ends_with?(p, TreePath.append(p, "blah")) |> IO.puts
+
+    IO.puts("-------------------------")
+
+    DataTree.insert(:ptree, ~n"data.local.cluster")
+    DataTree.insert(:ptree, ~n"data.local.cluster.node0")
+    DataTree.insert(:ptree, ~n"data.local.cluster.node0.state")
+    DataTree.insert(:ptree, ~n"data.local.cluster.node1")
+    DataTree.insert(:ptree, ~n"data.local.cluster.node1.state")
+    DataTree.insert(:ptree, ~n"data.local.cluster.mode")
+
+    DataTree.subtree(:ptree, ~t"data.local") |> IO.inspect
   end
 end

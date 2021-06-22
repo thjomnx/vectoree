@@ -15,8 +15,27 @@ defmodule DataTree do
 
   def lookup(table, path) do
     case :ets.lookup(table, path) do
-      [{^path, parameter}] -> {:ok, parameter}
+      [{^path, node}] -> {:ok, node}
       [] -> :error
+    end
+  end
+
+  def subtree(table, path) do
+    subtree(table, path, [])
+  end
+
+  defp subtree(table, path, acc) do
+    acc = case :ets.lookup(table, path) do
+      [{^path, node}] -> [node | acc]
+      [] -> acc
+    end
+
+    node = hd(acc)
+
+    if Node.has_children(node) do
+      Enum.reduce(Node.children_paths(node), acc, &subtree(table, &1, &2))
+    else
+      acc
     end
   end
 

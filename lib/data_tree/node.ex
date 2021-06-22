@@ -3,9 +3,9 @@ defmodule DataTree.Node do
 
   defstruct [:path, :name, :type, :value, :unit, time: TimeInfo.new, status: Status.new, children: []]
 
-  def new(%TreePath{} = full_path) do
-    parent = TreePath.parent(full_path)
-    base = TreePath.basename(full_path)
+  def new(%TreePath{} = abs_path) do
+    parent = TreePath.parent(abs_path)
+    base = TreePath.basename(abs_path)
     new(parent, base)
   end
 
@@ -20,6 +20,16 @@ defmodule DataTree.Node do
 
   def abs_path(%__MODULE__{path: path, name: name}) do
     TreePath.append(path, name)
+  end
+
+  def has_children(%__MODULE__{children: children}) do
+    length(children) > 0
+  end
+
+  def children_paths(%__MODULE__{path: path, name: name, children: children}) do
+    for child <- children do
+      TreePath.append(path, [name, child])
+    end
   end
 
   def root?(%__MODULE__{path: path}), do: TreePath.level(path) <= 1
