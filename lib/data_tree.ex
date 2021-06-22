@@ -25,10 +25,11 @@ defmodule DataTree do
   end
 
   defp subtree(table, path, acc) do
-    acc = case :ets.lookup(table, path) do
-      [{^path, node}] -> [node | acc]
-      [] -> acc
-    end
+    acc =
+      case :ets.lookup(table, path) do
+        [{^path, node}] -> [node | acc]
+        [] -> acc
+      end
 
     node = hd(acc)
 
@@ -61,6 +62,7 @@ defmodule DataTree do
     case :ets.lookup(table, parent_path) do
       [{^parent_path, parent}] ->
         :ets.insert(table, {parent_path, Node.add_child(parent, name)})
+
       [] ->
         missing_parent = Node.new(parent_path)
         :ets.insert(table, {parent_path, missing_parent})

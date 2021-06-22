@@ -1,7 +1,16 @@
 defmodule DataTree.Node do
   alias DataTree.{Status, TimeInfo, TreePath}
 
-  defstruct [:path, :name, :type, :value, :unit, time: TimeInfo.new, status: Status.new, children: []]
+  defstruct [
+    :path,
+    :name,
+    :type,
+    :value,
+    :unit,
+    time: TimeInfo.new(),
+    status: Status.new(),
+    children: []
+  ]
 
   def new(%TreePath{} = abs_path) do
     parent = TreePath.parent(abs_path)
@@ -9,13 +18,14 @@ defmodule DataTree.Node do
     new(parent, base)
   end
 
-  def new(%TreePath{} = parent_path, name, type \\ nil, value \\ nil, unit \\ nil) when is_binary(name) do
+  def new(%TreePath{} = parent_path, name, type \\ nil, value \\ nil, unit \\ nil)
+      when is_binary(name) do
     normalized_name = TreePath.normalize(name)
     %__MODULE__{path: parent_path, name: normalized_name, type: type, value: value, unit: unit}
   end
 
   def sigil_n(term, []) when is_binary(term) do
-    String.split(term, TreePath.separator) |> TreePath.new |> new
+    String.split(term, TreePath.separator()) |> TreePath.new() |> new
   end
 
   def abs_path(%__MODULE__{path: path, name: name}) do

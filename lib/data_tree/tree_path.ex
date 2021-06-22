@@ -1,9 +1,8 @@
 defmodule DataTree.TreePath do
-
   @separator "."
   @separator_replacement "_" <> Base.encode16(@separator, case: :lower)
 
-  defstruct [segments: []]
+  defstruct segments: []
 
   def new(segment) when is_binary(segment), do: [segment] |> init
   def new(segments) when is_list(segments), do: segments |> init_reversed
@@ -17,7 +16,7 @@ defmodule DataTree.TreePath do
   end
 
   defp init_reversed(segments) do
-    %__MODULE__{segments: segments |> normalize |> Enum.reverse}
+    %__MODULE__{segments: segments |> normalize |> Enum.reverse()}
   end
 
   defp init_raw(segment) when is_binary(segment) do
@@ -30,8 +29,8 @@ defmodule DataTree.TreePath do
 
   def normalize(segments) when is_list(segments) do
     segments
-      |> Stream.filter(&(String.length(&1) > 0))
-      |> Enum.map(&(String.replace(&1, @separator, @separator_replacement)))
+    |> Stream.filter(&(String.length(&1) > 0))
+    |> Enum.map(&String.replace(&1, @separator, @separator_replacement))
   end
 
   def separator(), do: @separator
@@ -78,17 +77,17 @@ defmodule DataTree.TreePath do
   end
 
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
-    fun = &(segments |> Enum.reverse |> List.starts_with?(&1))
+    fun = &(segments |> Enum.reverse() |> List.starts_with?(&1))
 
     cond do
       is_binary(prefix) -> fun.([prefix])
       is_list(prefix) -> fun.(prefix)
-      is_struct(prefix, __MODULE__) -> fun.(prefix.segments |> Enum.reverse)
+      is_struct(prefix, __MODULE__) -> fun.(prefix.segments |> Enum.reverse())
     end
   end
 
   def ends_with?(%__MODULE__{segments: segments}, suffix) do
-    fun = &(List.starts_with?(segments, &1))
+    fun = &List.starts_with?(segments, &1)
 
     cond do
       is_binary(suffix) -> fun.([suffix])
@@ -99,7 +98,7 @@ defmodule DataTree.TreePath do
 
   defimpl String.Chars, for: DataTree.TreePath do
     def to_string(path) do
-      path.segments |> Enum.reverse |> Enum.join(DataTree.TreePath.separator)
+      path.segments |> Enum.reverse() |> Enum.join(DataTree.TreePath.separator())
     end
   end
 end
