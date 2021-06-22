@@ -53,15 +53,15 @@ defmodule DataTree do
 
   @impl true
   def handle_call({:insert, %Node{} = node}, from, table) do
-    :ets.insert(table, {Node.abs_path(node), node})
+    :ets.insert(table, {Node.path(node), node})
     update_parent_of(table, node)
     {:reply, from, table}
   end
 
-  defp update_parent_of(table, %Node{path: parent_path, name: name}) do
+  defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
     case :ets.lookup(table, parent_path) do
-      [{^parent_path, parent}] ->
-        :ets.insert(table, {parent_path, Node.add_child(parent, name)})
+      [{^parent_path, parent_node}] ->
+        :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})
 
       [] ->
         missing_parent = Node.new(parent_path)

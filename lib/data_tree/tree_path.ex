@@ -20,7 +20,10 @@ defmodule DataTree.TreePath do
   end
 
   defp init_raw(segment) when is_binary(segment) do
-    %__MODULE__{segments: [segment]}
+    case segment do
+      "" -> %__MODULE__{segments: []}
+      _ -> %__MODULE__{segments: [segment]}
+    end
   end
 
   def normalize(segment) when is_binary(segment) do
@@ -39,8 +42,15 @@ defmodule DataTree.TreePath do
     length(segments)
   end
 
-  def root(%__MODULE__{segments: segments}) do
-    List.last(segments) |> init_raw
+  def root(%__MODULE__{} = path) do
+    path |> rootname |> init_raw
+  end
+
+  def rootname(%__MODULE__{segments: segments}) do
+    case List.last(segments) do
+      nil -> ""
+      x -> x
+    end
   end
 
   def parent(%__MODULE__{segments: segments} = path) do
