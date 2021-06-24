@@ -39,16 +39,6 @@ defmodule DataTree.Node do
     TreePath.append(path, name)
   end
 
-  def has_children(%__MODULE__{children: children}) do
-    length(children) > 0
-  end
-
-  def children_paths(%__MODULE__{parent_path: path, name: name, children: children}) do
-    for child <- children do
-      TreePath.append(path, [name, child])
-    end
-  end
-
   def root?(%__MODULE__{parent_path: path}), do: TreePath.level(path) <= 1
   def leaf?(%__MODULE__{children: children}), do: Enum.empty?(children)
 
@@ -60,6 +50,12 @@ defmodule DataTree.Node do
       %{node | children: new_children}
     else
       node
+    end
+  end
+
+  def children_paths(%__MODULE__{parent_path: path, name: name, children: children}) do
+    for child <- children do
+      TreePath.append(path, [name, child])
     end
   end
 end

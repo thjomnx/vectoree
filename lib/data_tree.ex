@@ -67,12 +67,7 @@ defmodule DataTree do
         [] -> acc
       end
 
-    node = hd(acc)
-
-    if Node.has_children(node) do
-      Enum.reduce(Node.children_paths(node), acc, &subtree(table, &1, &2))
-    else
-      acc
-    end
+    children = hd(acc) |> Node.children_paths()
+    Enum.reduce(children, acc, &subtree(table, &1, &2))
   end
 end

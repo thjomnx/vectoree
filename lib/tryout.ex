@@ -79,6 +79,8 @@ defmodule Tryout do
     DataTree.insert(:ptree, ~n"data.local.cluster.node1.state")
     DataTree.insert(:ptree, ~n"data.local.cluster.mode")
 
-    DataTree.subtree(:ptree, ~t"data.local") |> IO.inspect()
+    sub = DataTree.subtree(:ptree, ~t"data.local")
+    sub |> IO.inspect()
+    length(sub) |> IO.puts()
   end
 end
