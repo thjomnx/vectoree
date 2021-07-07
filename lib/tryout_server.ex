@@ -1,4 +1,4 @@
-defmodule Tryout do
+defmodule TryoutServer do
   use Application
 
   import DataTree.{Node, TreePath}
@@ -11,18 +11,18 @@ defmodule Tryout do
   end
 
   def run_proto do
-    DataTree.new(name: :ptree)
+    DataTreeServer.start_link(name: :ptree)
 
     # -----------
 
-    {:ok, data} = DataTree.insert(:ptree, ~n"data")
-    {:ok, local} = DataTree.insert(:ptree, ~n"data.local")
+    {:ok, data} = DataTreeServer.insert(:ptree, ~n"data")
+    {:ok, local} = DataTreeServer.insert(:ptree, ~n"data.local")
 
     timestamp = DateTime.utc_now() |> DateTime.to_unix()
 
     n = Node.new(~t"data.local", "ticks", :int32, timestamp, :milliseconds)
     {:ok, ticks} =
-      DataTree.insert(:ptree, n)
+      DataTreeServer.insert(:ptree, n)
 
     IO.inspect(data)
     IO.inspect(local)
@@ -34,11 +34,11 @@ defmodule Tryout do
       18..28,
       fn i ->
         name = "param" <> Integer.to_string(i)
-        DataTree.insert(:ptree, ~n"data.#{name}")
+        DataTreeServer.insert(:ptree, ~n"data.#{name}")
       end
     )
 
-    DataTree.lookup(:ptree, ~t"data.param23") |> IO.inspect()
+    DataTreeServer.lookup(:ptree, ~t"data.param23") |> IO.inspect()
 
     # -----------
 
@@ -73,14 +73,14 @@ defmodule Tryout do
 
     IO.puts("-------------------------")
 
-    DataTree.insert(:ptree, ~n"data.local.cluster")
-    DataTree.insert(:ptree, ~n"data.local.cluster.node0")
-    DataTree.insert(:ptree, ~n"data.local.cluster.node0.state")
-    DataTree.insert(:ptree, ~n"data.local.cluster.node1")
-    DataTree.insert(:ptree, ~n"data.local.cluster.node1.state")
-    DataTree.insert(:ptree, ~n"data.local.cluster.mode")
+    DataTreeServer.insert(:ptree, ~n"data.local.cluster")
+    DataTreeServer.insert(:ptree, ~n"data.local.cluster.node0")
+    DataTreeServer.insert(:ptree, ~n"data.local.cluster.node0.state")
+    DataTreeServer.insert(:ptree, ~n"data.local.cluster.node1")
+    DataTreeServer.insert(:ptree, ~n"data.local.cluster.node1.state")
+    DataTreeServer.insert(:ptree, ~n"data.local.cluster.mode")
 
-    {:ok, sub} = DataTree.subtree(:ptree, ~t"data.local")
+    sub = DataTreeServer.subtree(:ptree, ~t"data.local")
     sub |> IO.inspect()
     length(sub) |> IO.puts()
   end

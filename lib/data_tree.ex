@@ -1,51 +1,33 @@
 defmodule DataTree do
-  use GenServer
+  import DataTree.Node
 
   alias DataTree.{Node, TreePath}
 
-  def start_link(opts) do
+  def new(opts) do
     table = Keyword.fetch!(opts, :name)
-    GenServer.start_link(__MODULE__, table, opts)
-  end
-
-  def insert(table, %Node{} = node) do
-    GenServer.call(table, {:insert, node})
-    {:ok, node}
-  end
-
-  def lookup(table, %TreePath{} = path) do
-    case :ets.lookup(table, path) do
-      [{^path, node}] -> {:ok, node}
-      [] -> :error
-    end
-  end
-
-  def subtree(table, %TreePath{} = path) do
-    GenServer.call(table, {:subtree, path})
-  end
-
-  @impl true
-  def init(table) do
-    table_ref = :ets.new(table, [:named_table, read_concurrency: true])
+    table_ref = :ets.new(table, [:named_table])
     {:ok, table_ref}
   end
 
-  @impl true
-  def handle_info(_msg, state) do
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_call({:insert, %Node{} = node}, _from, table) do
+  def insert(table, %Node{} = node) do
     :ets.insert(table, {Node.path(node), node})
     update_parent_of(table, node)
-    {:reply, :ok, table}
+    {:ok, node}
   end
 
-  @impl true
-  def handle_call({:subtree, %TreePath{} = path}, _from, table) do
-    subtree = subtree(table, path, [])
-    {:reply, subtree, table}
+  def populate(table) do
+    Enum.map(
+      1..20000,
+      fn i ->
+        name = "node_" <> Integer.to_string(i)
+        node = ~n"data.#{name}"
+        :ets.insert(table, {Node.path(node), node})
+        update_parent_of(table, node)
+
+        Integer.to_string(i) |> IO.puts()
+      end
+    )
+    {:ok, nil}
   end
 
   defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
@@ -58,6 +40,18 @@ defmodule DataTree do
         :ets.insert(table, {parent_path, missing_parent})
         update_parent_of(table, missing_parent)
     end
+  end
+
+  def lookup(table, %TreePath{} = path) do
+    case :ets.lookup(table, path) do
+      [{^path, node}] -> {:ok, node}
+      [] -> :error
+    end
+  end
+
+  def subtree(table, %TreePath{} = path) do
+    subtree = subtree(table, path, [])
+    {:ok, subtree}
   end
 
   defp subtree(table, %TreePath{} = path, acc) do

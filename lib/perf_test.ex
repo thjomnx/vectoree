@@ -4,12 +4,12 @@ defmodule PerfTest do
   import DataTree.{Node, TreePath}
 
   def start(_type, _args) do
-    run()
+    insert_many()
     {:ok, self()}
   end
 
-  def run do
-    DataTree.start_link(name: :ptree)
+  def insert_many do
+    DataTree.new(name: :ptree)
 
     {:ok, _data} = DataTree.insert(:ptree, ~n"data")
 
@@ -26,6 +26,18 @@ defmodule PerfTest do
     IO.puts "DataTree.subtree"
 
     sub = DataTree.subtree(:ptree, ~t"data")
+    length(sub) |> IO.puts()
+  end
+
+  def populate do
+    IO.puts "DataTree.populate"
+
+    DataTree.new(name: :ptree)
+    DataTree.populate(:ptree)
+
+    IO.puts "DataTree.subtree"
+
+    {:ok, sub} = DataTree.subtree(:ptree, ~t"data")
     length(sub) |> IO.puts()
   end
 end
