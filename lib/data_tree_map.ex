@@ -1,16 +1,15 @@
-defmodule DataTree do
+defmodule DataTreeMap do
   import DataTree.Node
 
   alias DataTree.{Node, TreePath}
 
-  def new(opts) do
-    table = Keyword.fetch!(opts, :name)
-    table_ref = :ets.new(table, [:named_table])
-    {:ok, table_ref}
+  def new() do
+    table = Map.new()
+    {:ok, table}
   end
 
   def insert(table, %Node{} = node) do
-    :ets.insert(table, {Node.path(node), node})
+    Map.put(table, Node.path(node), node)
     update_parent_of(table, node)
     {:ok, node}
   end
@@ -19,7 +18,7 @@ defmodule DataTree do
     for i <- 1..100, j <- 1..100, k <- 1..20 do
       name = "node_" <> Integer.to_string(k)
       node = ~n"data.#{i}.#{j}.#{k}.#{name}"
-      :ets.insert(table, {Node.path(node), node})
+      Map.put(table, Node.path(node), node)
       update_parent_of(table, node)
 
       # "#{i}/#{j}/#{k}" |> IO.puts()
@@ -28,22 +27,19 @@ defmodule DataTree do
   end
 
   defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
-    case :ets.lookup(table, parent_path) do
-      [{^parent_path, parent_node}] ->
-        :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})
+    case Map.fetch(table, parent_path) do
+      {:ok, parent_node} ->
+        Map.put(table, parent_path, Node.add_child(parent_node, name))
 
-      [] ->
+      :error ->
         missing_parent = Node.new(parent_path)
-        :ets.insert(table, {parent_path, missing_parent})
+        Map.put(table, parent_path, missing_parent)
         update_parent_of(table, missing_parent)
     end
   end
 
   def lookup(table, %TreePath{} = path) do
-    case :ets.lookup(table, path) do
-      [{^path, node}] -> {:ok, node}
-      [] -> :error
-    end
+    Map.fetch(table, path)
   end
 
   def subtree(table, %TreePath{} = path) do
@@ -53,9 +49,9 @@ defmodule DataTree do
 
   defp subtree(table, %TreePath{} = path, acc) do
     acc =
-      case :ets.lookup(table, path) do
-        [{^path, node}] -> [node | acc]
-        [] -> acc
+      case Map.fetch(table, path) do
+        {:ok, node} -> [node | acc]
+        :error -> acc
       end
 
     children = hd(acc) |> Node.children_paths()

@@ -1,17 +1,16 @@
-defmodule DataTree do
+defmodule DataTreeBag do
   import DataTree.Node
 
   alias DataTree.{Node, TreePath}
 
   def new(opts) do
     table = Keyword.fetch!(opts, :name)
-    table_ref = :ets.new(table, [:named_table])
+    table_ref = :ets.new(table, [:bag, :named_table])
     {:ok, table_ref}
   end
 
   def insert(table, %Node{} = node) do
-    :ets.insert(table, {Node.path(node), node})
-    update_parent_of(table, node)
+    :ets.insert(table, {node.parent_path, node})
     {:ok, node}
   end
 
@@ -19,30 +18,21 @@ defmodule DataTree do
     for i <- 1..100, j <- 1..100, k <- 1..20 do
       name = "node_" <> Integer.to_string(k)
       node = ~n"data.#{i}.#{j}.#{k}.#{name}"
-      :ets.insert(table, {Node.path(node), node})
-      update_parent_of(table, node)
+      :ets.insert(table, {node.parent_path, node})
 
       # "#{i}/#{j}/#{k}" |> IO.puts()
     end
     {:ok, nil}
   end
 
-  defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
-    case :ets.lookup(table, parent_path) do
-      [{^parent_path, parent_node}] ->
-        :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})
-
-      [] ->
-        missing_parent = Node.new(parent_path)
-        :ets.insert(table, {parent_path, missing_parent})
-        update_parent_of(table, missing_parent)
-    end
-  end
-
   def lookup(table, %TreePath{} = path) do
-    case :ets.lookup(table, path) do
-      [{^path, node}] -> {:ok, node}
-      [] -> :error
+    parent_path = TreePath.parent(path)
+    name = TreePath.basename(path)
+
+    case :ets.lookup(table, parent_path) do
+      bag ->
+        node = Enum.find(bag, fn x -> elem(x, 1).name == name end)
+        {:ok, node}
     end
   end
 

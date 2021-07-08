@@ -1,4 +1,4 @@
-defmodule DataTree do
+defmodule DataTreeSep do
   import DataTree.Node
 
   alias DataTree.{Node, TreePath}
@@ -6,12 +6,13 @@ defmodule DataTree do
   def new(opts) do
     table = Keyword.fetch!(opts, :name)
     table_ref = :ets.new(table, [:named_table])
+    :ets.new(:pstruct, [:bag, :named_table])
     {:ok, table_ref}
   end
 
   def insert(table, %Node{} = node) do
     :ets.insert(table, {Node.path(node), node})
-    update_parent_of(table, node)
+    :ets.insert(:pstruct, {node.parent_path, node.name})
     {:ok, node}
   end
 
@@ -20,7 +21,7 @@ defmodule DataTree do
       name = "node_" <> Integer.to_string(k)
       node = ~n"data.#{i}.#{j}.#{k}.#{name}"
       :ets.insert(table, {Node.path(node), node})
-      update_parent_of(table, node)
+      update_parent_of(:pstruct, node)
 
       # "#{i}/#{j}/#{k}" |> IO.puts()
     end
@@ -28,14 +29,14 @@ defmodule DataTree do
   end
 
   defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
-    case :ets.lookup(table, parent_path) do
-      [{^parent_path, parent_node}] ->
-        :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})
+    :ets.insert(table, {parent_path, name})
+    update_parent_of(table, TreePath.parent(parent_path), TreePath.basename(parent_path))
+  end
 
-      [] ->
-        missing_parent = Node.new(parent_path)
-        :ets.insert(table, {parent_path, missing_parent})
-        update_parent_of(table, missing_parent)
+  defp update_parent_of(table, parent_path, name) when is_binary(name) do
+    unless TreePath.level(parent_path) == 0 do
+      :ets.insert(table, {parent_path, name})
+      update_parent_of(table, TreePath.parent(parent_path), TreePath.basename(parent_path))
     end
   end
 
@@ -55,10 +56,14 @@ defmodule DataTree do
     acc =
       case :ets.lookup(table, path) do
         [{^path, node}] -> [node | acc]
-        [] -> acc
+        [] -> [Node.new(path) | acc]
       end
 
-    children = hd(acc) |> Node.children_paths()
+    children =
+      case :ets.lookup(:pstruct, path) do
+        bag -> Enum.map(bag, fn x -> TreePath.append(path, elem(x, 1)) end)
+      end
+
     Enum.reduce(children, acc, &subtree(table, &1, &2))
   end
 end

@@ -1,16 +1,16 @@
-defmodule DataTree do
+defmodule DataTreeShards do
   import DataTree.Node
 
   alias DataTree.{Node, TreePath}
 
   def new(opts) do
     table = Keyword.fetch!(opts, :name)
-    table_ref = :ets.new(table, [:named_table])
+    table_ref = ExShards.new(table, [:named_table])
     {:ok, table_ref}
   end
 
   def insert(table, %Node{} = node) do
-    :ets.insert(table, {Node.path(node), node})
+    ExShards.insert(table, {Node.path(node), node})
     update_parent_of(table, node)
     {:ok, node}
   end
@@ -19,7 +19,7 @@ defmodule DataTree do
     for i <- 1..100, j <- 1..100, k <- 1..20 do
       name = "node_" <> Integer.to_string(k)
       node = ~n"data.#{i}.#{j}.#{k}.#{name}"
-      :ets.insert(table, {Node.path(node), node})
+      ExShards.insert(table, {Node.path(node), node})
       update_parent_of(table, node)
 
       # "#{i}/#{j}/#{k}" |> IO.puts()
@@ -28,19 +28,19 @@ defmodule DataTree do
   end
 
   defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
-    case :ets.lookup(table, parent_path) do
+    case ExShards.lookup(table, parent_path) do
       [{^parent_path, parent_node}] ->
-        :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})
+        ExShards.insert(table, {parent_path, Node.add_child(parent_node, name)})
 
       [] ->
         missing_parent = Node.new(parent_path)
-        :ets.insert(table, {parent_path, missing_parent})
+        ExShards.insert(table, {parent_path, missing_parent})
         update_parent_of(table, missing_parent)
     end
   end
 
   def lookup(table, %TreePath{} = path) do
-    case :ets.lookup(table, path) do
+    case ExShards.lookup(table, path) do
       [{^path, node}] -> {:ok, node}
       [] -> :error
     end
@@ -53,7 +53,7 @@ defmodule DataTree do
 
   defp subtree(table, %TreePath{} = path, acc) do
     acc =
-      case :ets.lookup(table, path) do
+      case ExShards.lookup(table, path) do
         [{^path, node}] -> [node | acc]
         [] -> acc
       end
