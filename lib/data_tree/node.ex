@@ -20,21 +20,15 @@ defmodule DataTree.Node do
 
   def new(%TreePath{} = parent_path, name, type \\ nil, value \\ nil, unit \\ nil)
       when is_binary(name) do
-    case name do
-      "" ->
-        :error
+    normalized_name = TreePath.normalize(name)
 
-      _ ->
-        normalized_name = TreePath.normalize(name)
-
-        %__MODULE__{
-          parent_path: parent_path,
-          name: normalized_name,
-          type: type,
-          value: value,
-          unit: unit
-        }
-    end
+    %__MODULE__{
+      parent_path: parent_path,
+      name: normalized_name,
+      type: type,
+      value: value,
+      unit: unit
+    }
   end
 
   defmacro sigil_n({:<<>>, _, [term]}, []) when is_binary(term) do
