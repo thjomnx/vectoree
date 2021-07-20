@@ -60,6 +60,7 @@ defmodule DataTreeServer do
         update_parent_of(table, node)
       end
     )
+
     {:reply, :ok, table}
   end
 

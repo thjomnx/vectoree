@@ -20,9 +20,8 @@ defmodule TryoutServer do
 
     timestamp = DateTime.utc_now() |> DateTime.to_unix()
 
-    n = Node.new(~t"data.local", "ticks", :int32, timestamp, :milliseconds)
-    {:ok, ticks} =
-      DataTreeServer.insert(:ptree, n)
+    n = Node.new(~p"data.local", "ticks", :int32, timestamp, :milliseconds)
+    {:ok, ticks} = DataTreeServer.insert(:ptree, n)
 
     IO.inspect(data)
     IO.inspect(local)
@@ -38,7 +37,7 @@ defmodule TryoutServer do
       end
     )
 
-    DataTreeServer.lookup(:ptree, ~t"data.param23") |> IO.inspect()
+    DataTreeServer.lookup(:ptree, ~p"data.param23") |> IO.inspect()
 
     # -----------
 
@@ -80,7 +79,7 @@ defmodule TryoutServer do
     DataTreeServer.insert(:ptree, ~n"data.local.cluster.node1.state")
     DataTreeServer.insert(:ptree, ~n"data.local.cluster.mode")
 
-    sub = DataTreeServer.subtree(:ptree, ~t"data.local")
+    sub = DataTreeServer.subtree(:ptree, ~p"data.local")
     sub |> IO.inspect()
     length(sub) |> IO.puts()
   end

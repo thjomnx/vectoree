@@ -3,7 +3,7 @@ defmodule PerfTest do
 
   import DataTree.{Node, TreePath}
 
-  alias DataTree.Node
+  alias DataTree.{Node, TreePath}
 
   def start(_type, _args) do
     insert_many()
@@ -15,7 +15,7 @@ defmodule PerfTest do
 
     {:ok, _data} = DataTree.insert(:ptree, ~n"data")
 
-    IO.puts "Enum.map"
+    IO.puts("Enum.map")
 
     Enum.map(
       0..99999,
@@ -25,14 +25,14 @@ defmodule PerfTest do
       end
     )
 
-    IO.puts "DataTree.subtree"
+    IO.puts("DataTree.subtree")
 
-    sub = DataTree.subtree(:ptree, ~t"data")
+    sub = DataTree.subtree(:ptree, ~p"data")
     length(sub) |> IO.puts()
   end
 
   def populate_ets_set do
-    IO.puts "DataTree.populate"
+    IO.puts("DataTree.populate")
 
     DataTree.new(name: :ptree)
 
@@ -40,11 +40,11 @@ defmodule PerfTest do
     DataTree.populate(:ptree)
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-    IO.puts "DataTree.subtree"
-    Process.sleep(3000)
+    IO.puts("DataTree.subtree")
+    # Process.sleep(3000)
 
     start = DateTime.utc_now()
-    {:ok, sub} = DataTree.subtree(:ptree, ~t"data")
+    {:ok, sub} = DataTree.subtree(:ptree, ~p"data")
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
     length(sub) |> IO.puts()
@@ -52,7 +52,7 @@ defmodule PerfTest do
   end
 
   def populate_sep_ets_set do
-    IO.puts "DataTreeSep.populate"
+    IO.puts("DataTreeSep.populate")
 
     DataTreeSep.new(name: :ptree)
 
@@ -60,11 +60,11 @@ defmodule PerfTest do
     DataTreeSep.populate(:ptree)
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-    IO.puts "DataTreeSep.subtree"
-    Process.sleep(3000)
+    IO.puts("DataTreeSep.subtree")
+    # Process.sleep(3000)
 
     start = DateTime.utc_now()
-    {:ok, sub} = DataTreeSep.subtree(:ptree, ~t"data")
+    {:ok, sub} = DataTreeSep.subtree(:ptree, ~p"data")
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
     length(sub) |> IO.puts()
@@ -72,7 +72,7 @@ defmodule PerfTest do
   end
 
   def populate_shards do
-    IO.puts "DataTreeShards.populate"
+    IO.puts("DataTreeShards.populate")
 
     DataTreeShards.new(name: :ptree)
 
@@ -80,11 +80,11 @@ defmodule PerfTest do
     DataTreeShards.populate(:ptree)
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-    IO.puts "DataTreeShards.subtree"
-    Process.sleep(3000)
+    IO.puts("DataTreeShards.subtree")
+    # Process.sleep(3000)
 
     start = DateTime.utc_now()
-    {:ok, sub} = DataTreeShards.subtree(:ptree, ~t"data")
+    {:ok, sub} = DataTreeShards.subtree(:ptree, ~p"data")
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
     length(sub) |> IO.puts()
@@ -92,35 +92,50 @@ defmodule PerfTest do
   end
 
   def populate_bag do
-    IO.puts "DataTreeBag.populate"
+    IO.puts("DataTreeBag.populate")
 
     DataTreeBag.new(name: :ptree)
+
+    start = DateTime.utc_now()
     DataTreeBag.populate(:ptree)
+    DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-    IO.puts "DataTreeBag.subtree"
+    IO.puts("DataTreeBag.subtree")
 
-    {:ok, sub} = DataTreeBag.subtree(:ptree, ~t"data")
+    start = DateTime.utc_now()
+    {:ok, sub} = DataTreeBag.subtree(:ptree, ~p"data")
+    DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
+
     length(sub) |> IO.puts()
+    # sub |> IO.inspect()
   end
 
   def populate_map do
-    IO.puts "DataTreeMap.populate"
+    IO.puts("DataTreeMap.populate")
 
     m = DataTreeMap.new()
+
+    start = DateTime.utc_now()
     m = DataTreeMap.populate(m)
+    DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-    IO.puts "DataTreeMap.subtree"
+    IO.puts("DataTreeMap.subtree")
 
-    {:ok, sub} = DataTreeMap.subtree(m, ~t"data")
+    start = DateTime.utc_now()
+    {:ok, sub} = DataTreeMap.subtree(m, ~p"data")
+    DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
+
     length(sub) |> IO.puts()
+    # sub |> IO.inspect()
   end
 
   def bench_map do
-    m = for i <- 1..100, j <- 1..100, k <- 1..20, into: %{} do
-      name = "node_" <> Integer.to_string(k)
-      node = ~n"data.#{i}.#{j}.#{k}.#{name}"
-      {Node.path(node), node}
-    end
+    m =
+      for i <- 1..100, j <- 1..100, k <- 1..20, into: %{} do
+        segments = ["data", Integer.to_string(i), Integer.to_string(j)]
+        node = TreePath.new(segments) |> Node.new("node_#{k}")
+        {Node.path(node), node}
+      end
 
     map_size(m) |> IO.puts()
   end
@@ -129,25 +144,13 @@ defmodule PerfTest do
     t = :ets.new(:ptree, [:named_table])
 
     start = DateTime.utc_now()
+
     for i <- 1..100, j <- 1..100, k <- 1..20 do
-      name = "node_" <> Integer.to_string(k)
-      node = ~n"data.#{i}.#{j}.#{k}.#{name}"
+      segments = ["data", Integer.to_string(i), Integer.to_string(j)]
+      node = TreePath.new(segments) |> Node.new("node_#{k}")
       :ets.insert(t, {Node.path(node), node})
     end
-    DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-    :ets.tab2list(t) |> length() |> IO.puts()
-  end
-
-  def bench_ets_set_large do
-    t = :ets.new(:ptree, [:named_table])
-
-    start = DateTime.utc_now()
-    for i <- 1..100, j <- 1..100, k <- 1..200 do
-      name = "node_" <> Integer.to_string(k)
-      node = ~n"data.#{i}.#{j}.#{k}.#{name}"
-      :ets.insert(t, {Node.path(node), node})
-    end
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
     :ets.tab2list(t) |> length() |> IO.puts()

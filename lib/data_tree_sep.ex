@@ -1,5 +1,5 @@
 defmodule DataTreeSep do
-  import DataTree.Node
+  import DataTree.TreePath
 
   alias DataTree.{Node, TreePath}
 
@@ -18,13 +18,13 @@ defmodule DataTreeSep do
 
   def populate(table) do
     for i <- 1..100, j <- 1..100, k <- 1..20 do
-      name = "node_" <> Integer.to_string(k)
-      node = ~n"data.#{i}.#{j}.#{k}.#{name}"
+      node = ~p"data.#{i}.#{j}" |> Node.new("node_#{k}")
       :ets.insert(table, {Node.path(node), node})
       update_parent_of(:pstruct, node)
 
       # "#{i}/#{j}/#{k}" |> IO.puts()
     end
+
     {:ok, nil}
   end
 

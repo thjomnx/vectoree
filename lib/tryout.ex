@@ -20,9 +20,8 @@ defmodule Tryout do
 
     timestamp = DateTime.utc_now() |> DateTime.to_unix()
 
-    n = Node.new(~t"data.local", "ticks", :int32, timestamp, :milliseconds)
-    {:ok, ticks} =
-      DataTree.insert(:ptree, n)
+    n = Node.new(~p"data.local", "ticks", :int32, timestamp, :milliseconds)
+    {:ok, ticks} = DataTree.insert(:ptree, n)
 
     IO.inspect(data)
     IO.inspect(local)
@@ -38,7 +37,7 @@ defmodule Tryout do
       end
     )
 
-    DataTree.lookup(:ptree, ~t"data.param23") |> IO.inspect()
+    DataTree.lookup(:ptree, ~p"data.param23") |> IO.inspect()
 
     # -----------
 
@@ -80,8 +79,14 @@ defmodule Tryout do
     DataTree.insert(:ptree, ~n"data.local.cluster.node1.state")
     DataTree.insert(:ptree, ~n"data.local.cluster.mode")
 
-    {:ok, sub} = DataTree.subtree(:ptree, ~t"data.local")
+    {:ok, sub} = DataTree.subtree(:ptree, ~p"data.local")
     sub |> IO.inspect()
     length(sub) |> IO.puts()
+  end
+
+  def ets_matching do
+    # :ets.insert(t, {"a.b.c.x", "a.b.c", "x", :int32, 1287461765, :cochrane, 12418458145, 1826768276, false})
+    # :ets.fun2ms(fn({abs_path, parent_path, name, type, value, unit, created, modified, valid}) when parent_path == "a.b.c" -> {abs_path, parent_path, name, type, value, unit, created, modified, valid} end)
+    # :ets.select(t, m)
   end
 end

@@ -14,7 +14,7 @@ defmodule DataTree.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      applications: [:shards],
+      # applications: [:shards],
       extra_applications: [:logger]
     ]
   end
@@ -23,7 +23,7 @@ defmodule DataTree.MixProject do
   defp deps do
     [
       {:ex_shards, "~> 0.2"},
-      {:ex2ms, "~> 1.0"}
+      {:ex2ms, "~> 1.4"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
