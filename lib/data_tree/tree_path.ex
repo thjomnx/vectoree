@@ -7,11 +7,43 @@ defmodule DataTree.TreePath do
   def new(segment) when is_binary(segment), do: [segment] |> init
   def new(segments) when is_list(segments), do: segments |> init_reversed
 
-  def sigil_t(term, []) when is_binary(term) do
-    String.split(term, @separator) |> new
+  defmacro sigil_p({:<<>>, _, [term]}, []) when is_binary(term) do
+    reversed =
+      term
+      |> String.split(@separator)
+      |> Enum.filter(&(&1 != ""))
+      |> Enum.reverse()
+
+    quote do
+      DataTree.TreePath.wrap(unquote(reversed))
+    end
   end
 
-  defp init(segments) do
+  defmacro sigil_p({:<<>>, _line, terms}, []) do
+    escape = fn
+      {:"::", _, [expr, _]} ->
+        expr
+
+      binary when is_binary(binary) ->
+        :elixir_interpolation.unescape_string(binary) |> String.trim(@separator)
+    end
+
+    reversed =
+      terms
+      |> Enum.filter(&(&1 != @separator))
+      |> Enum.map(&escape.(&1))
+      |> Enum.reverse()
+
+    quote do
+      DataTree.TreePath.wrap(unquote(reversed))
+    end
+  end
+
+  def wrap(segments) when is_list(segments) do
+    %__MODULE__{segments: segments}
+  end
+
+  defp init(segments) when is_list(segments) do
     %__MODULE__{segments: segments |> normalize}
   end
 
@@ -27,12 +59,15 @@ defmodule DataTree.TreePath do
   end
 
   def normalize(segment) when is_binary(segment) do
-    String.replace(segment, @separator, @separator_replacement)
+    segment
+    |> String.trim()
+    |> String.replace(@separator, @separator_replacement)
   end
 
   def normalize(segments) when is_list(segments) do
     segments
     |> Stream.filter(&(String.length(&1) > 0))
+    |> Stream.map(&String.trim(&1))
     |> Enum.map(&String.replace(&1, @separator, @separator_replacement))
   end
 

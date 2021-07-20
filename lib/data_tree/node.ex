@@ -20,19 +20,71 @@ defmodule DataTree.Node do
 
   def new(%TreePath{} = parent_path, name, type \\ nil, value \\ nil, unit \\ nil)
       when is_binary(name) do
-    normalized_name = TreePath.normalize(name)
+    case name do
+      "" ->
+        :error
 
-    %__MODULE__{
-      parent_path: parent_path,
-      name: normalized_name,
-      type: type,
-      value: value,
-      unit: unit
-    }
+      _ ->
+        normalized_name = TreePath.normalize(name)
+
+        %__MODULE__{
+          parent_path: parent_path,
+          name: normalized_name,
+          type: type,
+          value: value,
+          unit: unit
+        }
+    end
   end
 
-  def sigil_n(term, []) when is_binary(term) do
-    String.split(term, TreePath.separator()) |> TreePath.new() |> new
+  defmacro sigil_n({:<<>>, _, [term]}, []) when is_binary(term) do
+    [name | parent_path] =
+      term
+      |> String.split(DataTree.TreePath.separator())
+      |> Enum.reverse()
+
+    quote do
+      DataTree.Node.new(
+        DataTree.TreePath.wrap(unquote(parent_path)),
+        unquote(name)
+      )
+    end
+  end
+
+  defmacro sigil_n({:<<>>, _line, terms}, []) do
+    escape = fn
+      {:"::", _, [expr, _]} ->
+        expr
+
+      binary when is_binary(binary) ->
+        binary
+        |> :elixir_interpolation.unescape_string()
+        |> String.trim(DataTree.TreePath.separator())
+    end
+
+    flatsplit = fn
+      binary when is_binary(binary) ->
+        binary
+        |> String.split(".")
+        |> Enum.reverse()
+
+      other ->
+        other
+    end
+
+    [name | parent_path] =
+      terms
+      |> Enum.filter(&(&1 != DataTree.TreePath.separator()))
+      |> Enum.map(&escape.(&1))
+      |> Enum.map(&flatsplit.(&1))
+      |> Enum.reverse()
+
+    quote do
+      DataTree.Node.new(
+        DataTree.TreePath.wrap(unquote(parent_path)),
+        unquote(name)
+      )
+    end
   end
 
   def path(%__MODULE__{parent_path: path, name: name}) do

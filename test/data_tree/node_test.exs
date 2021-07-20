@@ -13,13 +13,24 @@ defmodule DataTree.NodeTest do
   end
 
   test "new via abspath" do
-    assert is_struct(Node.new(~t""), Node)
-    assert is_struct(Node.new(~t"a.b.c"), Node)
+    assert Node.new(~p"") == :error
+    assert is_struct(Node.new(~p"a.b.c"), Node)
   end
 
   test "new via parent" do
-    assert is_struct(Node.new(~t"", ""), Node)
-    assert is_struct(Node.new(~t"a.b", "c"), Node)
+    assert Node.new(~p"", "") == :error
+    assert is_struct(Node.new(~p"a.b", "c"), Node)
   end
 
+  test "sigil n" do
+    assert ~n"" == :error
+    assert is_struct(~n"a.b.c", Node)
+
+    x = "  a.b"
+    y = "  c  "
+    z = "d.e  "
+    n = ~n"#{x}.#{y}.#{z}"
+    assert is_struct(n, Node)
+    # assert to_string(n.parent_path) == "a.b.c.d"
+  end
 end
