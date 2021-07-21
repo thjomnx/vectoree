@@ -22,7 +22,7 @@ defmodule DataTreeBag do
       # "#{i}/#{j}/#{k}" |> IO.puts()
     end
 
-    {:ok, nil}
+    :ok
   end
 
   def lookup(table, %TreePath{} = path) do

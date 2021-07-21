@@ -40,7 +40,7 @@ defmodule DataTree do
       # "#{i}/#{j}/#{k}" |> IO.puts()
     end
 
-    {:ok, nil}
+    :ok
   end
 
   defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do

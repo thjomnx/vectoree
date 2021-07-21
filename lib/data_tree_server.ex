@@ -17,7 +17,7 @@ defmodule DataTreeServer do
 
   def populate(table) do
     GenServer.call(table, {:populate})
-    {:ok, nil}
+    :ok
   end
 
   def lookup(table, %TreePath{} = path) do
