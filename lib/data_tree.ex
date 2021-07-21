@@ -33,7 +33,7 @@ defmodule DataTree do
         :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})
 
       [] ->
-        missing_parent = Node.new(parent_path)
+        missing_parent = Node.new(parent_path) |> Node.add_child(name)
         :ets.insert(table, {parent_path, missing_parent})
         update_parent_of(table, missing_parent)
     end
