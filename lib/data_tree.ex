@@ -10,7 +10,7 @@ defmodule DataTree do
   end
 
   def insert(table, %Node{} = node) do
-    :ets.insert(table, {Node.path(node), node})
+    :ets.insert(table, Node.to_tuple(node))
     update_parent_of(table, node)
     {:ok, node}
   end
@@ -18,7 +18,7 @@ defmodule DataTree do
   def populate(table) do
     for i <- 1..100, j <- 1..100, k <- 1..20 do
       node = ~p"data.#{i}.#{j}" |> Node.new("node_#{k}")
-      :ets.insert(table, {Node.path(node), node})
+      :ets.insert(table, Node.to_tuple(node))
       update_parent_of(table, node)
 
       # "#{i}/#{j}/#{k}" |> IO.puts()
@@ -29,19 +29,20 @@ defmodule DataTree do
 
   defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
     case :ets.lookup(table, parent_path) do
-      [{^parent_path, parent_node}] ->
-        :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})
+      [tuple] when is_tuple(tuple) ->
+        updated_parent = Node.from_tuple(tuple) |> Node.add_child(name) |> Node.to_tuple()
+        :ets.insert(table, updated_parent)
 
       [] ->
         missing_parent = Node.new(parent_path) |> Node.add_child(name)
-        :ets.insert(table, {parent_path, missing_parent})
+        :ets.insert(table, Node.to_tuple(missing_parent))
         update_parent_of(table, missing_parent)
     end
   end
 
   def lookup(table, %TreePath{} = path) do
     case :ets.lookup(table, path) do
-      [{^path, node}] -> {:ok, node}
+      [tuple] when is_tuple(tuple) -> {:ok, Node.from_tuple(tuple)}
       [] -> :error
     end
   end
@@ -54,7 +55,7 @@ defmodule DataTree do
   defp subtree(table, %TreePath{} = path, acc) do
     acc =
       case :ets.lookup(table, path) do
-        [{^path, node}] -> [node | acc]
+        [tuple] when is_tuple(tuple) -> [Node.from_tuple(tuple) | acc]
         [] -> acc
       end
 
