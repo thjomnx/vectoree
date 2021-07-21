@@ -46,7 +46,7 @@ defmodule DataTree.Node do
   defmacro sigil_n({:<<>>, _, [term]}, []) when is_binary(term) do
     [name | parent_path] =
       term
-      |> String.split(DataTree.TreePath.separator())
+      |> String.split(TreePath.separator())
       |> Enum.reverse()
 
     quote do
@@ -65,7 +65,7 @@ defmodule DataTree.Node do
       binary when is_binary(binary) ->
         binary
         |> :elixir_interpolation.unescape_string()
-        |> String.trim(DataTree.TreePath.separator())
+        |> String.trim(TreePath.separator())
     end
 
     flatsplit = fn
@@ -80,7 +80,7 @@ defmodule DataTree.Node do
 
     [name | parent_path] =
       terms
-      |> Enum.filter(&(&1 != DataTree.TreePath.separator()))
+      |> Enum.filter(&(&1 != TreePath.separator()))
       |> Enum.map(&escape.(&1))
       |> Enum.map(&flatsplit.(&1))
       |> Enum.reverse()
