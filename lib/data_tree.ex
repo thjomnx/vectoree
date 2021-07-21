@@ -46,13 +46,7 @@ defmodule DataTree do
   defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
     case :ets.lookup(table, parent_path) do
       [{_, _, _, _, _, _, children}] ->
-        new_children =
-          unless Enum.member?(children, name) do
-            [name | children]
-          else
-            children
-          end
-
+        new_children = MapSet.put(children, name)
         :ets.update_element(table, parent_path, {@elem_pos_children, new_children})
 
       [] ->

@@ -9,7 +9,7 @@ defmodule DataTree.Node do
     :unit,
     modified: 0,
     status: 0,
-    children: []
+    children: MapSet.new()
   ]
 
   def new(%TreePath{} = abs_path) do
@@ -26,7 +26,7 @@ defmodule DataTree.Node do
         unit \\ nil,
         modified \\ 0,
         status \\ 0,
-        children \\ []
+        children \\ MapSet.new()
       )
       when is_binary(name) do
     normalized_name = TreePath.normalize(name)
@@ -98,17 +98,12 @@ defmodule DataTree.Node do
   end
 
   def root?(%__MODULE__{parent_path: path}), do: TreePath.level(path) <= 1
-  def leaf?(%__MODULE__{children: children}), do: Enum.empty?(children)
+  def leaf?(%__MODULE__{children: children}), do: MapSet.size(children) == 0
 
   def add_child(%__MODULE__{} = node, name) when is_binary(name) do
     normalized_name = TreePath.normalize(name)
-
-    unless Enum.member?(node.children, normalized_name) do
-      new_children = [normalized_name | node.children]
-      %{node | children: new_children}
-    else
-      node
-    end
+    new_children = MapSet.put(node.children, normalized_name)
+    %{node | children: new_children}
   end
 
   def children_paths(%__MODULE__{parent_path: path, name: name, children: children}) do
