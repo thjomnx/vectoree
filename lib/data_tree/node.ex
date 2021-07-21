@@ -1,14 +1,6 @@
 defmodule DataTree.Node do
   alias DataTree.TreePath
 
-  @idx_path 0
-  @idx_type 1
-  @idx_value 2
-  @idx_unit 3
-  @idx_modified 4
-  @idx_status 5
-  @idx_children 6
-
   defstruct [
     :parent_path,
     :name,
@@ -123,32 +115,5 @@ defmodule DataTree.Node do
     for child <- children do
       TreePath.append(path, [name, child])
     end
-  end
-
-  def from_tuple(tuple) when is_tuple(tuple) do
-    path = elem(tuple, @idx_path)
-
-    new(
-      TreePath.parent(path),
-      TreePath.basename(path),
-      elem(tuple, @idx_type),
-      elem(tuple, @idx_value),
-      elem(tuple, @idx_unit),
-      elem(tuple, @idx_modified),
-      elem(tuple, @idx_status),
-      elem(tuple, @idx_children)
-    )
-  end
-
-  def to_tuple(%__MODULE__{} = node) do
-    {
-      path(node),
-      node.type,
-      node.value,
-      node.unit,
-      node.modified,
-      node.status,
-      node.children
-    }
   end
 end
