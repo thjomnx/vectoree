@@ -51,7 +51,7 @@ defmodule DataTree.TreePath do
     %__MODULE__{segments: segments |> normalize |> Enum.reverse()}
   end
 
-  defp init_raw(segment) when is_binary(segment) do
+  defp init_single(segment) when is_binary(segment) do
     case segment do
       "" -> %__MODULE__{segments: []}
       _ -> %__MODULE__{segments: [segment]}
@@ -78,7 +78,7 @@ defmodule DataTree.TreePath do
   end
 
   def root(%__MODULE__{} = path) do
-    path |> rootname |> init_raw
+    path |> rootname |> init_single
   end
 
   def rootname(%__MODULE__{segments: segments}) do
@@ -90,14 +90,14 @@ defmodule DataTree.TreePath do
 
   def parent(%__MODULE__{segments: segments} = path) do
     case segments do
-      [_ | tail] -> tail |> init
+      [_ | tail] -> tail |> wrap
       _ -> path
     end
   end
 
   def base(%__MODULE__{segments: segments} = path) do
     case segments do
-      [head | _] -> head |> init_raw
+      [head | _] -> head |> init_single
       _ -> path
     end
   end
@@ -110,15 +110,21 @@ defmodule DataTree.TreePath do
   end
 
   def sibling(%__MODULE__{} = path, segment) when is_binary(segment) do
-    [segment | parent(path).segments] |> init
+    case segment do
+      "" -> path
+      _ -> [normalize(segment) | parent(path).segments] |> wrap
+    end
   end
 
-  def append(%__MODULE__{segments: segments}, segment) when is_binary(segment) do
-    [segment | segments] |> init
+  def append(%__MODULE__{segments: segments} = path, segment) when is_binary(segment) do
+    case segment do
+      "" -> path
+      _ -> [normalize(segment) | segments] |> wrap
+    end
   end
 
   def append(%__MODULE__{} = path, segments) when is_list(segments) do
-    Enum.reduce(segments, path.segments, &[&1 | &2]) |> init
+    segments |> normalize |> Enum.reduce(path.segments, &[&1 | &2]) |> wrap
   end
 
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
