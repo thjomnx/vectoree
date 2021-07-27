@@ -14,26 +14,28 @@ defmodule DataTree.TreePathTest do
   end
 
   test "new via binary" do
-    assert is_struct(TreePath.new(""), TreePath)
-    assert is_struct(TreePath.new("a"), TreePath)
-    assert TreePath.new("a.b.c") |> to_string == "a_2eb_2ec"
+    assert TreePath.new("").segments == []
+    assert TreePath.new("a").segments == ["a"]
+    assert TreePath.new("  a.b.c  ").segments == ["  a.b.c  "]
   end
 
   test "new via list" do
-    assert is_struct(TreePath.new([]), TreePath)
-    assert is_struct(TreePath.new(["a", "b", "c"]), TreePath)
+    assert TreePath.new([]).segments == []
+    assert TreePath.new(["a"]).segments == ["a"]
+    assert TreePath.new(["a", "b", "c"]).segments == ["c", "b", "a"]
   end
 
   test "sigil p" do
     assert is_struct(~p"", TreePath)
     assert is_struct(~p"a.b.c", TreePath)
 
+    assert ~p"  a.b.c  " == TreePath.new(["a", "b", "c"])
+
     x = "  a.b"
     y = "  c  "
     z = "d.e  "
     p = ~p"#{x}.#{y}.#{z}"
-    assert is_struct(p, TreePath)
-    # assert to_string(p) == "a.b.c.d.e"
+    # assert p == TreePath.new(["a", "b", "c", "d", "e"])
   end
 
   test "level" do
@@ -89,7 +91,7 @@ defmodule DataTree.TreePathTest do
     p = TreePath.new(["a", "b", "c"])
 
     assert TreePath.append(p, "d") == TreePath.new(["a", "b", "c", "d"])
-    assert TreePath.append(p, ["d", "e"]) == TreePath.new(["a", "b", "c", "d", "e"])
+    assert TreePath.append(p, ~p"d.e") == TreePath.new(["a", "b", "c", "d", "e"])
     assert TreePath.append(~p"", "d") == TreePath.new("d")
   end
 
@@ -111,5 +113,9 @@ defmodule DataTree.TreePathTest do
     refute TreePath.ends_with?(p, TreePath.new("b"))
     assert TreePath.ends_with?(p, TreePath.new("c"))
     refute TreePath.ends_with?(p, TreePath.append(p, "x"))
+  end
+
+  test "to_string" do
+    assert TreePath.new("  a.b.c  ") |> to_string() == "  a_2eb_2ec  "
   end
 end

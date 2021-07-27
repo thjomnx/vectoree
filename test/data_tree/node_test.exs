@@ -2,7 +2,7 @@ defmodule DataTree.NodeTest do
   use ExUnit.Case
 
   import DataTree.{Node, TreePath}
-  alias DataTree.Node
+  alias DataTree.{Node, TreePath}
 
   @moduletag :capture_log
 
@@ -25,6 +25,8 @@ defmodule DataTree.NodeTest do
   test "sigil n" do
     assert is_struct(~n"", Node)
     assert is_struct(~n"a.b.c", Node)
+
+    assert ~n"  a.b.c  " == Node.new(TreePath.new(["a", "b", "c"]))
 
     x = "  a.b"
     y = "  c  "

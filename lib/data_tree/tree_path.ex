@@ -11,6 +11,7 @@ defmodule DataTree.TreePath do
     reversed =
       term
       |> String.split(@separator)
+      |> Enum.map(&String.trim/1)
       |> Enum.filter(&(&1 != ""))
       |> Enum.reverse()
 
@@ -58,20 +59,12 @@ defmodule DataTree.TreePath do
     end
   end
 
-  def normalize(segment) when is_binary(segment) do
-    segment
-    |> String.trim()
-    |> String.replace(@separator, @separator_replacement)
-  end
-
   def normalize(segments) when is_list(segments) do
-    segments
-    |> Stream.filter(&(String.length(&1) > 0))
-    |> Stream.map(&String.trim(&1))
-    |> Enum.map(&String.replace(&1, @separator, @separator_replacement))
+    Enum.filter(segments, &(String.length(&1) > 0))
   end
 
   def separator(), do: @separator
+  def separator_replacement(), do: @separator_replacement
 
   def level(%__MODULE__{segments: segments}) do
     length(segments)
@@ -112,19 +105,19 @@ defmodule DataTree.TreePath do
   def sibling(%__MODULE__{} = path, segment) when is_binary(segment) do
     case segment do
       "" -> path
-      _ -> [normalize(segment) | parent(path).segments] |> wrap
+      _ -> [segment | parent(path).segments] |> wrap
     end
   end
 
   def append(%__MODULE__{segments: segments} = path, segment) when is_binary(segment) do
     case segment do
       "" -> path
-      _ -> [normalize(segment) | segments] |> wrap
+      _ -> [segment | segments] |> wrap
     end
   end
 
-  def append(%__MODULE__{} = path, segments) when is_list(segments) do
-    segments |> normalize |> Enum.reduce(path.segments, &[&1 | &2]) |> wrap
+  def append(%__MODULE__{segments: segments}, %__MODULE__{segments: more}) do
+    more ++ segments |> wrap
   end
 
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
@@ -149,7 +142,13 @@ defmodule DataTree.TreePath do
 
   defimpl String.Chars, for: DataTree.TreePath do
     def to_string(path) do
-      path.segments |> Enum.reverse() |> Enum.join(DataTree.TreePath.separator())
+      sep = DataTree.TreePath.separator()
+      repl = DataTree.TreePath.separator_replacement()
+
+      path.segments
+      |> Enum.reverse()
+      |> Enum.map(&String.replace(&1, sep, repl))
+      |> Enum.join(DataTree.TreePath.separator())
     end
   end
 end

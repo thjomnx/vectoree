@@ -29,11 +29,9 @@ defmodule DataTree.Node do
         children \\ MapSet.new()
       )
       when is_binary(name) do
-    normalized_name = TreePath.normalize(name)
-
     %__MODULE__{
       parent_path: parent_path,
-      name: normalized_name,
+      name: name,
       type: type,
       value: value,
       unit: unit,
@@ -47,6 +45,7 @@ defmodule DataTree.Node do
     [name | parent_path] =
       term
       |> String.split(TreePath.separator())
+      |> Enum.map(&String.trim/1)
       |> Enum.reverse()
 
     quote do
@@ -71,7 +70,7 @@ defmodule DataTree.Node do
     flatsplit = fn
       binary when is_binary(binary) ->
         binary
-        |> String.split(".")
+        |> String.split(TreePath.separator())
         |> Enum.reverse()
 
       other ->
