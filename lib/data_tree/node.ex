@@ -100,14 +100,13 @@ defmodule DataTree.Node do
   def leaf?(%__MODULE__{children: children}), do: MapSet.size(children) == 0
 
   def add_child(%__MODULE__{} = node, name) when is_binary(name) do
-    normalized_name = TreePath.normalize(name)
-    new_children = MapSet.put(node.children, normalized_name)
+    new_children = MapSet.put(node.children, name)
     %{node | children: new_children}
   end
 
   def children_paths(%__MODULE__{parent_path: path, name: name, children: children}) do
     for child <- children do
-      TreePath.append(path, [name, child])
+      TreePath.append(path, TreePath.wrap([child, name]))
     end
   end
 end

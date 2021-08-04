@@ -35,7 +35,7 @@ defmodule DataTree.TreePathTest do
     y = "  c  "
     z = "d.e  "
     p = ~p"#{x}.#{y}.#{z}"
-    # assert p == TreePath.new(["a", "b", "c", "d", "e"])
+    assert p == TreePath.new(["  a.b", "  c  ", "d.e  "])
   end
 
   test "level" do
