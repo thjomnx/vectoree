@@ -117,7 +117,7 @@ defmodule DataTree.TreePath do
   end
 
   def append(%__MODULE__{segments: segments}, %__MODULE__{segments: more}) do
-    more ++ segments |> wrap
+    (more ++ segments) |> wrap
   end
 
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
