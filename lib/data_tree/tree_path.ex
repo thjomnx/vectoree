@@ -4,8 +4,25 @@ defmodule DataTree.TreePath do
 
   defstruct segments: []
 
-  def new(segment) when is_binary(segment), do: [segment] |> init
-  def new(segments) when is_list(segments), do: segments |> init_reversed
+  def new(segment) when is_binary(segment) do
+    case segment do
+      "" -> %__MODULE__{segments: []}
+      _ -> %__MODULE__{segments: [segment]}
+    end
+  end
+
+  def new(segments) when is_list(segments) do
+    filtered_segments =
+      segments
+      |> Enum.filter(&(String.length(&1) > 0))
+      |> Enum.reverse()
+
+    %__MODULE__{segments: filtered_segments}
+  end
+
+  def wrap(segments) when is_list(segments) do
+    %__MODULE__{segments: segments}
+  end
 
   defmacro sigil_p({:<<>>, _, [term]}, []) when is_binary(term) do
     reversed =
@@ -40,29 +57,6 @@ defmodule DataTree.TreePath do
     end
   end
 
-  def wrap(segments) when is_list(segments) do
-    %__MODULE__{segments: segments}
-  end
-
-  defp init(segments) when is_list(segments) do
-    %__MODULE__{segments: segments |> normalize}
-  end
-
-  defp init_reversed(segments) do
-    %__MODULE__{segments: segments |> normalize |> Enum.reverse()}
-  end
-
-  defp init_single(segment) when is_binary(segment) do
-    case segment do
-      "" -> %__MODULE__{segments: []}
-      _ -> %__MODULE__{segments: [segment]}
-    end
-  end
-
-  def normalize(segments) when is_list(segments) do
-    Enum.filter(segments, &(String.length(&1) > 0))
-  end
-
   def separator(), do: @separator
   def separator_replacement(), do: @separator_replacement
 
@@ -71,7 +65,7 @@ defmodule DataTree.TreePath do
   end
 
   def root(%__MODULE__{} = path) do
-    path |> rootname |> init_single
+    path |> rootname |> new
   end
 
   def rootname(%__MODULE__{segments: segments}) do
@@ -90,7 +84,7 @@ defmodule DataTree.TreePath do
 
   def base(%__MODULE__{segments: segments} = path) do
     case segments do
-      [head | _] -> head |> init_single
+      [head | _] -> head |> new
       _ -> path
     end
   end
