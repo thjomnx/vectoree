@@ -2,6 +2,7 @@ defmodule DataTree.NodeTest do
   use ExUnit.Case
 
   import DataTree.{Node, TreePath}
+
   alias DataTree.{Node, TreePath}
 
   @moduletag :capture_log
@@ -31,8 +32,7 @@ defmodule DataTree.NodeTest do
     x = "  a.b"
     y = "  c  "
     z = "d.e  "
-    n = ~n"#{x}.#{y}.#{z}"
-    assert is_struct(n, Node)
-    # assert to_string(n.parent_path) == "a.b.c.d"
+    n = ~n"m.#{x}.#{y}.#{z}.n"
+    assert n == Node.new(TreePath.new(["m", "  a.b", "  c  ", "d.e  ", "n"]))
   end
 end

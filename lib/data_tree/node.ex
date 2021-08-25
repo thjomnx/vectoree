@@ -67,21 +67,10 @@ defmodule DataTree.Node do
         |> String.trim(TreePath.separator())
     end
 
-    flatsplit = fn
-      binary when is_binary(binary) ->
-        binary
-        |> String.split(TreePath.separator())
-        |> Enum.reverse()
-
-      other ->
-        other
-    end
-
     [name | parent_path] =
       terms
       |> Enum.filter(&(&1 != TreePath.separator()))
       |> Enum.map(&escape.(&1))
-      |> Enum.map(&flatsplit.(&1))
       |> Enum.reverse()
 
     quote do

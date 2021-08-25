@@ -36,6 +36,10 @@ defmodule DataTree do
     :ok
   end
 
+  def size(table) do
+    :ets.info(table) |> Keyword.fetch!(:size)
+  end
+
   def node(table, %TreePath{} = path) do
     case :ets.lookup(table, path) do
       [tuple] when is_tuple(tuple) -> {:ok, tuple_to_node(tuple)}

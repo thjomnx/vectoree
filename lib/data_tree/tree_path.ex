@@ -43,7 +43,9 @@ defmodule DataTree.TreePath do
         expr
 
       binary when is_binary(binary) ->
-        :elixir_interpolation.unescape_string(binary) |> String.trim(@separator)
+        binary
+        |> :elixir_interpolation.unescape_string()
+        |> String.trim(@separator)
     end
 
     reversed =
