@@ -41,10 +41,14 @@ defmodule PerfTest do
     IO.puts("DataTree.subtree")
 
     start = DateTime.utc_now()
-    {:ok, sub} = DataTree.subtree(:ptree, ~p"data")
-    DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-    length(sub) |> IO.puts()
-    # sub |> IO.inspect()
+    case DataTree.subtree(:ptree, ~p"data") do
+      {:ok, sub} ->
+        DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
+        length(sub) |> IO.puts()
+
+      {:error, reason} ->
+        IO.puts(reason)
+    end
   end
 end

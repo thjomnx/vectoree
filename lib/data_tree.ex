@@ -25,47 +25,29 @@ defmodule DataTree do
     {:ok, table_ref}
   end
 
-  def insert(table, %Node{} = node) do
-    :ets.insert(table, node_to_tuple(node))
-    update_parent_of(table, node)
-    {:ok, node}
-  end
-
+  # Only for development/benchmarking purpose
   def populate(table) do
     for i <- 1..100, j <- 1..100, k <- 1..20 do
       node = ~p"data.#{i}.#{j}" |> Node.new("node_#{k}")
       :ets.insert(table, node_to_tuple(node))
-      update_parent_of(table, node)
-
-      # "#{i}/#{j}/#{k}" |> IO.puts()
+      update_parent(table, node)
     end
 
     :ok
   end
 
-  defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
-    case :ets.lookup(table, parent_path) do
-      [{_, _, _, _, _, _, children}] ->
-        new_children = MapSet.put(children, name)
-        :ets.update_element(table, parent_path, {@elem_pos_children, new_children})
-
-      [] ->
-        missing_parent = Node.new(parent_path) |> Node.add_child(name)
-        :ets.insert(table, node_to_tuple(missing_parent))
-        update_parent_of(table, missing_parent)
-    end
-  end
-
-  def lookup(table, %TreePath{} = path) do
+  def node(table, %TreePath{} = path) do
     case :ets.lookup(table, path) do
       [tuple] when is_tuple(tuple) -> {:ok, tuple_to_node(tuple)}
-      [] -> :error
+      [] -> {:error, "Node not found at path #{path}"}
     end
   end
 
   def subtree(table, %TreePath{} = path) do
-    subtree = subtree(table, path, [])
-    {:ok, subtree}
+    case subtree(table, path, []) do
+      [] -> {:error, "Node not found at path #{path}"}
+      subtree -> {:ok, subtree}
+    end
   end
 
   defp subtree(table, %TreePath{} = path, acc) do
@@ -75,8 +57,33 @@ defmodule DataTree do
         [] -> acc
       end
 
-    children = hd(acc) |> Node.children_paths()
-    Enum.reduce(children, acc, &subtree(table, &1, &2))
+    case acc do
+      [] ->
+        acc
+
+      _ ->
+        children = hd(acc) |> Node.children_paths()
+        Enum.reduce(children, acc, &subtree(table, &1, &2))
+    end
+  end
+
+  def insert(table, %Node{} = node) do
+    :ets.insert(table, node_to_tuple(node))
+    update_parent(table, node)
+    {:ok, node}
+  end
+
+  defp update_parent(table, %Node{parent_path: parent_path, name: name}) do
+    case :ets.lookup(table, parent_path) do
+      [{_, _, _, _, _, _, children}] ->
+        new_children = MapSet.put(children, name)
+        :ets.update_element(table, parent_path, {@elem_pos_children, new_children})
+
+      [] ->
+        missing_parent = Node.new(parent_path) |> Node.add_child(name)
+        :ets.insert(table, node_to_tuple(missing_parent))
+        update_parent(table, missing_parent)
+    end
   end
 
   defp tuple_to_node(tuple) when is_tuple(tuple) do
