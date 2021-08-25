@@ -47,27 +47,31 @@ defmodule DataTree do
     end
   end
 
-  def subtree(table, %TreePath{} = path) do
-    case subtree(table, path, []) do
+  def children(table, %TreePath{} = path) do
+    subtree(table, path, 2)
+  end
+
+  def subtree(table, %TreePath{} = path, limit \\ 0) do
+    case subtree(table, path, [], limit, 1) do
       [] -> {:error, "Node not found at path #{path}"}
-      subtree -> {:ok, subtree}
+      result -> {:ok, result}
     end
   end
 
-  defp subtree(table, %TreePath{} = path, acc) do
+  defp subtree(table, %TreePath{} = path, acc, limit, level) do
     acc =
       case :ets.lookup(table, path) do
         [tuple] when is_tuple(tuple) -> [tuple_to_node(tuple) | acc]
         [] -> acc
       end
 
-    case acc do
-      [] ->
+    cond do
+      acc == [] || level == limit ->
         acc
 
-      _ ->
+      limit <= 0 || level < limit ->
         children = hd(acc) |> Node.children_paths()
-        Enum.reduce(children, acc, &subtree(table, &1, &2))
+        Enum.reduce(children, acc, &subtree(table, &1, &2, limit, level + 1))
     end
   end
 
