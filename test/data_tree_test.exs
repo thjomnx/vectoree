@@ -20,7 +20,7 @@ defmodule DataTreeTest do
     parent = TreePath.new(["a", "b", "c"])
     {:ok, node} = DataTree.insert(:testtree, Node.new(parent, name))
 
-    assert node.parent_path == parent
+    assert node.parent == parent
     assert node.name == name
     assert DataTree.size(:testtree) == 5
   end

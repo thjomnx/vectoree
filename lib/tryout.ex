@@ -86,7 +86,7 @@ defmodule Tryout do
 
   def ets_matching do
     # :ets.insert(t, {"a.b.c.x", "a.b.c", "x", :int32, 1287461765, :cochrane, 12418458145, 1826768276, false})
-    # :ets.fun2ms(fn({abs_path, parent_path, name, type, value, unit, created, modified, valid}) when parent_path == "a.b.c" -> {abs_path, parent_path, name, type, value, unit, created, modified, valid} end)
+    # :ets.fun2ms(fn({abs_path, parent, name, type, value, unit, created, modified, valid}) when parent == "a.b.c" -> {abs_path, parent, name, type, value, unit, created, modified, valid} end)
     # :ets.select(t, m)
   end
 end

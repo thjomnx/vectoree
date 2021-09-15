@@ -2,7 +2,7 @@ defmodule DataTree.Node do
   alias DataTree.TreePath
 
   defstruct [
-    :parent_path,
+    :parent,
     :name,
     :type,
     :value,
@@ -13,13 +13,13 @@ defmodule DataTree.Node do
   ]
 
   def new(%TreePath{} = abs_path) do
-    parent_path = TreePath.parent(abs_path)
+    parent = TreePath.parent(abs_path)
     name = TreePath.basename(abs_path)
-    new(parent_path, name)
+    new(parent, name)
   end
 
   def new(
-        %TreePath{} = parent_path,
+        %TreePath{} = parent,
         name,
         type \\ nil,
         value \\ nil,
@@ -30,7 +30,7 @@ defmodule DataTree.Node do
       )
       when is_binary(name) do
     %__MODULE__{
-      parent_path: parent_path,
+      parent: parent,
       name: name,
       type: type,
       value: value,
@@ -42,7 +42,7 @@ defmodule DataTree.Node do
   end
 
   defmacro sigil_n({:<<>>, _, [term]}, []) when is_binary(term) do
-    [name | parent_path] =
+    [name | parent] =
       term
       |> String.split(TreePath.separator())
       |> Enum.map(&String.trim/1)
@@ -50,7 +50,7 @@ defmodule DataTree.Node do
 
     quote do
       DataTree.Node.new(
-        DataTree.TreePath.wrap(unquote(parent_path)),
+        DataTree.TreePath.wrap(unquote(parent)),
         unquote(name)
       )
     end
@@ -67,7 +67,7 @@ defmodule DataTree.Node do
         |> String.trim(TreePath.separator())
     end
 
-    [name | parent_path] =
+    [name | parent] =
       terms
       |> Enum.filter(&(&1 != TreePath.separator()))
       |> Enum.map(&escape.(&1))
@@ -75,17 +75,17 @@ defmodule DataTree.Node do
 
     quote do
       DataTree.Node.new(
-        DataTree.TreePath.wrap(unquote(parent_path)),
+        DataTree.TreePath.wrap(unquote(parent)),
         unquote(name)
       )
     end
   end
 
-  def path(%__MODULE__{parent_path: path, name: name}) do
+  def path(%__MODULE__{parent: path, name: name}) do
     TreePath.append(path, name)
   end
 
-  def root?(%__MODULE__{parent_path: path}), do: TreePath.level(path) <= 1
+  def root?(%__MODULE__{parent: path}), do: TreePath.level(path) <= 1
   def leaf?(%__MODULE__{children: children}), do: MapSet.size(children) == 0
 
   def add_child(%__MODULE__{} = node, name) when is_binary(name) do
@@ -93,7 +93,7 @@ defmodule DataTree.Node do
     %{node | children: new_children}
   end
 
-  def children_paths(%__MODULE__{parent_path: path, name: name, children: children}) do
+  def children_paths(%__MODULE__{parent: path, name: name, children: children}) do
     for child <- children do
       TreePath.append(path, TreePath.wrap([child, name]))
     end

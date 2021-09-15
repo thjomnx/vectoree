@@ -70,7 +70,7 @@ defmodule DataTreeServer do
     {:reply, subtree, table}
   end
 
-  defp update_parent_of(table, %Node{parent_path: parent_path, name: name}) do
+  defp update_parent_of(table, %Node{parent: parent_path, name: name}) do
     case :ets.lookup(table, parent_path) do
       [{^parent_path, parent_node}] ->
         :ets.insert(table, {parent_path, Node.add_child(parent_node, name)})

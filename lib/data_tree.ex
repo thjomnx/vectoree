@@ -81,14 +81,14 @@ defmodule DataTree do
     {:ok, node}
   end
 
-  defp update_parent(table, %Node{parent_path: parent_path, name: name}) do
-    case :ets.lookup(table, parent_path) do
+  defp update_parent(table, %Node{parent: parent, name: name}) do
+    case :ets.lookup(table, parent) do
       [{_, _, _, _, _, _, children}] ->
         new_children = MapSet.put(children, name)
-        :ets.update_element(table, parent_path, {@elem_pos_children, new_children})
+        :ets.update_element(table, parent, {@elem_pos_children, new_children})
 
       [] ->
-        missing_parent = Node.new(parent_path) |> Node.add_child(name)
+        missing_parent = Node.new(parent) |> Node.add_child(name)
         :ets.insert(table, node_to_tuple(missing_parent))
         update_parent(table, missing_parent)
     end
