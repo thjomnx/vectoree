@@ -3,7 +3,7 @@ defmodule DataTree.NodeTest do
 
   import DataTree.{Node, TreePath}
 
-  alias DataTree.{Node, TreePath}
+  alias DataTree.Node
 
   @moduletag :capture_log
 
@@ -24,15 +24,7 @@ defmodule DataTree.NodeTest do
   end
 
   test "sigil n" do
-    assert is_struct(~n"", Node)
-    assert is_struct(~n"a.b.c", Node)
-
-    assert ~n"  a.b.c  " == Node.new(TreePath.new(["a", "b", "c"]))
-
-    x = "  a.b"
-    y = "  c  "
-    z = "d.e  "
-    n = ~n"m.#{x}.#{y}.#{z}.n"
-    assert n == Node.new(TreePath.new(["m", "  a.b", "  c  ", "d.e  ", "n"]))
+    assert ~n"" == Node.new(~p"")
+    assert ~n"a.b.c" == Node.new(~p"a.b.c")
   end
 end

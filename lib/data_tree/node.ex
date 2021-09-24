@@ -41,12 +41,13 @@ defmodule DataTree.Node do
     }
   end
 
-  defmacro sigil_n({:<<>>, _, [term]}, []) when is_binary(term) do
-    [name | parent] =
-      term
-      |> String.split(TreePath.separator())
-      |> Enum.map(&String.trim/1)
-      |> Enum.reverse()
+  defmacro sigil_n({:<<>>, _line, [term]}, []) when is_binary(term) do
+    reversed = TreePath.transpose_literal(term)
+
+    [name | parent] = case reversed do
+      [] -> [""]
+      _ -> reversed
+    end
 
     quote do
       DataTree.Node.new(
@@ -56,22 +57,13 @@ defmodule DataTree.Node do
     end
   end
 
-  defmacro sigil_n({:<<>>, _line, terms}, []) do
-    escape = fn
-      {:"::", _, [expr, _]} ->
-        expr
+  defmacro sigil_n({:<<>>, _line, terms}, []) when is_list(terms) do
+    reversed = TreePath.transpose_tokens(terms)
 
-      binary when is_binary(binary) ->
-        binary
-        |> Macro.unescape_string()
-        |> String.trim(TreePath.separator())
+    [name | parent] = case reversed do
+      [] -> [""]
+      _ -> reversed
     end
-
-    [name | parent] =
-      terms
-      |> Enum.filter(&(&1 != TreePath.separator()))
-      |> Enum.map(&escape.(&1))
-      |> Enum.reverse()
 
     quote do
       DataTree.Node.new(
