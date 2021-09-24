@@ -26,28 +26,34 @@ defmodule DataTree.TreePathTest do
   end
 
   test "sigil p" do
-    assert is_struct(~p"", TreePath)
-    assert is_struct(~p"a.b.c", TreePath)
-
-    assert ~p"  a.b.c  " == TreePath.new(["a", "b", "c"])
+    assert ~p"" == TreePath.new([])
+    assert ~p"a.b.c" == TreePath.new(["a", "b", "c"])
 
     # Test whitespace preservation
+    assert ~p"  a . b  .  c " == TreePath.new(["  a ", " b  ", "  c "])
+
+    # Test whitespace and dot preservation with variable interpolation
     x = "  a.b"
     y = "  c  "
     z = "d.e  "
-    p = ~p"m.#{x}.#{y}.#{z}.n"
-    assert p == TreePath.new(["m", "  a.b", "  c  ", "d.e  ", "n"])
+    p = ~p"m.#{x}. #{y}  .#{z}.n"
+    assert p == TreePath.new(["m", "  a.b", "   c    ", "d.e  ", "n"])
 
-    # Test with atom interpolation
+    # Test with atom interpolation (single item)
+    assert ~p"#{:x}" == TreePath.new(["x"])
+
+    # Test with atom interpolation (mixed)
     p = ~p"abc.def.ghi.j#{:k}lm.nop.q#{:r}#{:s}t.uvw.xyz"
     assert p == TreePath.new(["abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz"])
 
     # Test with variable interpolation
+    zero = 0
     kl = "kl"
     r = "r"
     s = "s"
-    p = ~p"abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz"
-    assert p == TreePath.new(["abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz"])
+    umlauts = "äöüß"
+    p = ~p"#{zero}.abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz.#{umlauts}"
+    assert p == TreePath.new(["0", "abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz", "äöüß"])
   end
 
   test "level" do
