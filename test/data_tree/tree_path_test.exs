@@ -31,11 +31,23 @@ defmodule DataTree.TreePathTest do
 
     assert ~p"  a.b.c  " == TreePath.new(["a", "b", "c"])
 
+    # Test whitespace preservation
     x = "  a.b"
     y = "  c  "
     z = "d.e  "
     p = ~p"m.#{x}.#{y}.#{z}.n"
     assert p == TreePath.new(["m", "  a.b", "  c  ", "d.e  ", "n"])
+
+    # Test with atom interpolation
+    p = ~p"abc.def.ghi.j#{:k}lm.nop.q#{:r}#{:s}t.uvw.xyz"
+    assert p == TreePath.new(["abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz"])
+
+    # Test with variable interpolation
+    kl = "kl"
+    r = "r"
+    s = "s"
+    p = ~p"abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz"
+    assert p == TreePath.new(["abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz"])
   end
 
   test "level" do

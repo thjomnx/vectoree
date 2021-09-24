@@ -4,6 +4,40 @@ defmodule DataTree.TreePath do
 
   defstruct segments: []
 
+  @doc ~S"""
+  Creates a new struct from a singular `segment` or a list of `segments`.
+  An empty singular `segment` results in a struct with zero segments.
+  Lists of `segments` are filtered for empty elements. An empty list,
+  also as a consequence after filtering, results in a struct with zero
+  segments. Whitespace on each `segment` is preserved.
+
+  ## Examples
+
+  By passing a singular segment:
+
+      iex> DataTree.TreePath.new("data")
+      %DataTree.TreePath{segments: ["data"]}
+
+      iex> DataTree.TreePath.new("  da ta  ")
+      %DataTree.TreePath{segments: ["  da ta  "]}
+
+      iex> DataTree.TreePath.new("  ")
+      %DataTree.TreePath{segments: ["  "]}
+
+      iex> DataTree.TreePath.new("")
+      %DataTree.TreePath{segments: []}
+
+  By passing a list of segments:
+
+      iex> DataTree.TreePath.new([])
+      %DataTree.TreePath{segments: []}
+
+      iex> DataTree.TreePath.new(["data"])
+      %DataTree.TreePath{segments: ["data"]}
+
+      iex> DataTree.TreePath.new(["  data  ", "lo  re", "b4"])
+      %DataTree.TreePath{segments: ["b4", "lo  re", "  data  "]}
+  """
   def new(segment) when is_binary(segment) do
     case segment do
       "" -> %__MODULE__{segments: []}
@@ -20,11 +54,39 @@ defmodule DataTree.TreePath do
     %__MODULE__{segments: filtered_segments}
   end
 
+  @doc ~S"""
+  Creates a new struct by wrapping the provided list of `segments` as-is,
+  i.e. without any filtering and by expecting an already reversed order.
+
+  ## Examples
+
+  Here wrapping a path named "data.lore.b4":
+
+      iex> DataTree.TreePath.wrap(["b4", "lore", "data"])
+      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+  """
   def wrap(segments) when is_list(segments) do
     %__MODULE__{segments: segments}
   end
 
-  defmacro sigil_p({:<<>>, _, [term]}, []) when is_binary(term) do
+  @doc ~S"""
+  Handles the sigil `~p` for tree paths.
+
+
+
+  ## Examples
+
+      iex> ~p""
+      %DataTree.TreePath{segments: []}
+
+      iex> ~p"data.lore.b4"
+      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+
+      iex> x = "or"
+      iex> ~p"da#{:t}a.l#{x}e.b4"
+      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+  """
+  defmacro sigil_p({:<<>>, _line, [term]}, []) when is_binary(term) do
     reversed =
       term
       |> String.split(@separator)
@@ -37,22 +99,40 @@ defmodule DataTree.TreePath do
     end
   end
 
-  defmacro sigil_p({:<<>>, _line, terms}, []) do
+  defmacro sigil_p({:<<>>, _line, terms}, []) when is_list(terms) do
     escape = fn
-      {:"::", _, [expr, _]} ->
-        expr
-
-      binary when is_binary(binary) ->
-        binary
-        |> :elixir_interpolation.unescape_string()
-        |> String.trim(@separator)
+      {:"::", _, [expr, _]} -> expr
+      binary when is_binary(binary) -> Macro.unescape_string(binary)
     end
 
-    reversed =
-      terms
-      |> Enum.filter(&(&1 != @separator))
-      |> Enum.map(&escape.(&1))
-      |> Enum.reverse()
+    reduce = fn term, acc ->
+      acc_head = List.first(acc)
+
+      cond do
+        is_binary(term) ->
+          segments = String.split(term, @separator)
+
+          if is_tuple(acc_head) do
+            [segm_head | segm_tail] = segments
+            acc = List.update_at(acc, 0, fn i -> quote do: unquote(i) <> unquote(segm_head) end)
+            Enum.reverse(segm_tail) ++ acc
+          else
+            Enum.reverse(segments) ++ acc
+          end
+
+        is_tuple(term) ->
+          if acc_head do
+            List.update_at(acc, 0, fn i -> quote do: unquote(i) <> unquote(term) end)
+          else
+            [term | acc]
+          end
+
+        true ->
+          acc
+      end
+    end
+
+    reversed = terms |> Enum.map(&escape.(&1)) |> Enum.reduce([], reduce)
 
     quote do
       DataTree.TreePath.wrap(unquote(reversed))
@@ -62,14 +142,23 @@ defmodule DataTree.TreePath do
   def separator(), do: @separator
   def separator_replacement(), do: @separator_replacement
 
+  @doc ~S"""
+  TODO
+  """
   def level(%__MODULE__{segments: segments}) do
     length(segments)
   end
 
+  @doc ~S"""
+  TODO
+  """
   def root(%__MODULE__{} = path) do
     path |> rootname |> new
   end
 
+  @doc ~S"""
+  TODO
+  """
   def rootname(%__MODULE__{segments: segments}) do
     case List.last(segments) do
       nil -> ""
@@ -77,6 +166,9 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @doc ~S"""
+  TODO
+  """
   def parent(%__MODULE__{segments: segments} = path) do
     case segments do
       [_ | tail] -> tail |> wrap
@@ -84,6 +176,9 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @doc ~S"""
+  TODO
+  """
   def base(%__MODULE__{segments: segments} = path) do
     case segments do
       [head | _] -> head |> new
@@ -91,6 +186,9 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @doc ~S"""
+  TODO
+  """
   def basename(%__MODULE__{segments: segments}) do
     case segments do
       [head | _] -> head
@@ -98,6 +196,9 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @doc ~S"""
+  TODO
+  """
   def sibling(%__MODULE__{} = path, segment) when is_binary(segment) do
     case segment do
       "" -> path
@@ -105,6 +206,9 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @doc ~S"""
+  TODO
+  """
   def append(%__MODULE__{segments: segments} = path, segment) when is_binary(segment) do
     case segment do
       "" -> path
@@ -116,6 +220,9 @@ defmodule DataTree.TreePath do
     (more ++ segments) |> wrap
   end
 
+  @doc ~S"""
+  TODO
+  """
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
     fun = &(segments |> Enum.reverse() |> List.starts_with?(&1))
 
@@ -126,6 +233,9 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @doc ~S"""
+  TODO
+  """
   def ends_with?(%__MODULE__{segments: segments}, suffix) do
     fun = &List.starts_with?(segments, &1)
 

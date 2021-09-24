@@ -63,7 +63,7 @@ defmodule DataTree.Node do
 
       binary when is_binary(binary) ->
         binary
-        |> :elixir_interpolation.unescape_string()
+        |> Macro.unescape_string()
         |> String.trim(TreePath.separator())
     end
 
