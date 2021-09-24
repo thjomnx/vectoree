@@ -85,11 +85,7 @@ defmodule DataTree.TreePath do
       %DataTree.TreePath{segments: ["b4", "lore", "data"]}
   """
   defmacro sigil_p({:<<>>, _line, [term]}, []) when is_binary(term) do
-    reversed =
-      term
-      |> String.split(@separator)
-      |> Enum.filter(&(&1 != ""))
-      |> Enum.reverse()
+    reversed = transpose_literal(term)
 
     quote do
       DataTree.TreePath.wrap(unquote(reversed))
@@ -97,6 +93,21 @@ defmodule DataTree.TreePath do
   end
 
   defmacro sigil_p({:<<>>, _line, terms}, []) when is_list(terms) do
+    reversed = transpose_tokens(terms)
+
+    quote do
+      DataTree.TreePath.wrap(unquote(reversed))
+    end
+  end
+
+  def transpose_literal(term) when is_binary(term) do
+    term
+    |> String.split(@separator)
+    |> Enum.filter(&(&1 != ""))
+    |> Enum.reverse()
+  end
+
+  def transpose_tokens(terms) when is_list(terms) do
     escape = fn
       {:"::", _, [expr, _]} -> expr
       binary when is_binary(binary) -> Macro.unescape_string(binary)
@@ -129,11 +140,9 @@ defmodule DataTree.TreePath do
       end
     end
 
-    reversed = terms |> Enum.map(&escape.(&1)) |> Enum.reduce([], reduce)
-
-    quote do
-      DataTree.TreePath.wrap(unquote(reversed))
-    end
+    terms
+    |> Enum.map(&escape.(&1))
+    |> Enum.reduce([], reduce)
   end
 
   def separator(), do: @separator
