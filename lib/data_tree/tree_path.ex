@@ -72,8 +72,6 @@ defmodule DataTree.TreePath do
   @doc ~S"""
   Handles the sigil `~p` for tree paths.
 
-
-
   ## Examples
 
       iex> ~p""

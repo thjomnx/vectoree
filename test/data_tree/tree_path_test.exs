@@ -51,9 +51,10 @@ defmodule DataTree.TreePathTest do
     kl = "kl"
     r = "r"
     s = "s"
-    umlauts = "äöüß"
-    p = ~p"#{zero}.abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz.#{umlauts}"
-    assert p == TreePath.new(["0", "abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz", "äöüß"])
+    sz = "ß"
+    p = ~p"#{zero}.abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz.#{sz}"
+
+    assert p == TreePath.new(["0", "abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz", "ß"])
   end
 
   test "level" do
