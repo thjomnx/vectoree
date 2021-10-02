@@ -1,4 +1,6 @@
 defmodule DataTree.TreePath do
+  @type t :: struct()
+
   @separator "."
   @separator_replacement "_" <> Base.encode16(@separator, case: :lower)
 
@@ -38,6 +40,7 @@ defmodule DataTree.TreePath do
       iex> DataTree.TreePath.new(["  data  ", "lo  re", "b4"])
       %DataTree.TreePath{segments: ["b4", "lo  re", "  data  "]}
   """
+  @spec new(segment) :: t when segment: String.t()
   def new(segment) when is_binary(segment) do
     case segment do
       "" -> %__MODULE__{segments: []}
@@ -45,6 +48,7 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @spec new(segments) :: t when segments: list()
   def new(segments) when is_list(segments) do
     filtered_segments =
       segments
@@ -65,6 +69,7 @@ defmodule DataTree.TreePath do
       iex> DataTree.TreePath.wrap(["b4", "lore", "data"])
       %DataTree.TreePath{segments: ["b4", "lore", "data"]}
   """
+  @spec wrap(segments) :: t when segments: list()
   def wrap(segments) when is_list(segments) do
     %__MODULE__{segments: segments}
   end
@@ -154,6 +159,7 @@ defmodule DataTree.TreePath do
   @doc ~S"""
   Returns the path separator character as a `BitString`.
   """
+  @spec separator() :: String.t()
   def separator(), do: @separator
 
   @doc ~S"""
@@ -161,25 +167,45 @@ defmodule DataTree.TreePath do
   is the underscore character `_` followed by the Base64 encoded form of
   the separator character.
   """
+  @spec separator_replacement() :: String.t()
   def separator_replacement(), do: @separator_replacement
 
   @doc ~S"""
   Returns the level of the path, which corresponds to the number of segments.
   """
+  @spec level(t) :: integer()
   def level(%__MODULE__{segments: segments}) do
     length(segments)
   end
 
   @doc ~S"""
-  TODO
+  Returns a new struct which wraps the root segment of the given path.
+
+  ## Examples
+
+      iex> DataTree.TreePath.root(~p"")
+      %DataTree.TreePath{segments: []}
+
+      iex> DataTree.TreePath.root(~p"data")
+      %DataTree.TreePath{segments: ["data"]}
+
+      iex> DataTree.TreePath.root(~p"data.lore.b4")
+      %DataTree.TreePath{segments: ["data"]}
   """
+  @spec root(t) :: t
   def root(%__MODULE__{} = path) do
     path |> rootname |> new
   end
 
   @doc ~S"""
-  TODO
+  Returns the root segment name of the given path as a `BitString`.
+
+  ## Examples
+
+      iex> DataTree.TreePath.rootname(~p"data.lore.b4")
+      "data"
   """
+  @spec rootname(t) :: String.t()
   def rootname(%__MODULE__{segments: segments}) do
     case List.last(segments) do
       nil -> ""
