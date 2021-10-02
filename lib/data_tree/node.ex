@@ -42,7 +42,7 @@ defmodule DataTree.Node do
   end
 
   defmacro sigil_n({:<<>>, _line, [term]}, []) when is_binary(term) do
-    reversed = TreePath.transpose_literal(term)
+    reversed = TreePath.transpose_segments(term)
 
     [name | parent] = case reversed do
       [] -> [""]
@@ -58,7 +58,7 @@ defmodule DataTree.Node do
   end
 
   defmacro sigil_n({:<<>>, _line, terms}, []) when is_list(terms) do
-    reversed = TreePath.transpose_tokens(terms)
+    reversed = TreePath.transpose_segments(terms)
 
     [name | parent] = case reversed do
       [] -> [""]
