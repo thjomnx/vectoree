@@ -3,7 +3,7 @@ defmodule DataTree.NodeTest do
 
   import DataTree.{Node, TreePath}
 
-  alias DataTree.Node
+  alias DataTree.{Node, TreePath}
 
   @moduletag :capture_log
 
@@ -14,17 +14,66 @@ defmodule DataTree.NodeTest do
   end
 
   test "new via abspath" do
-    assert is_struct(Node.new(~p""), Node)
-    assert is_struct(Node.new(~p"a.b.c"), Node)
+    n = Node.new(~p"")
+    assert n.parent == TreePath.new([])
+    assert n.name == ""
+
+    n = Node.new(~p"a.b.c")
+    assert n.parent == ~p"a.b"
+    assert n.name == "c"
   end
 
-  test "new via parent" do
-    assert is_struct(Node.new(~p"", ""), Node)
-    assert is_struct(Node.new(~p"a.b", "c"), Node)
+  test "new via parent and name" do
+    n = Node.new(~p"", "")
+    assert n.parent == TreePath.new([])
+    assert n.name == ""
+
+    n = Node.new(~p"a.b", "c")
+    assert n.parent == ~p"a.b"
+    assert n.name == "c"
   end
 
   test "sigil n" do
-    assert ~n"" == Node.new(~p"")
-    assert ~n"a.b.c" == Node.new(~p"a.b.c")
+    n = ~n""
+    assert n.parent == TreePath.new([])
+    assert n.name == ""
+
+    n = ~n"a.b.c"
+    assert n.parent == ~p"a.b"
+    assert n.name == "c"
+
+    # Test whitespace preservation
+    n = ~n"  a . b  .  c "
+    assert n.parent == ~p"  a . b  "
+    assert n.name == "  c "
+
+    # Test whitespace and dot preservation with variable interpolation
+    x = "  a.b"
+    y = "  c  "
+    z = "d.e  "
+    n = ~n"m.#{x}. #{y}  .#{z}.n"
+    assert n.parent == ~p"m.#{x}. #{y}  .#{z}"
+    assert n.name == "n"
+
+    # Test with atom interpolation (single item)
+    n = ~n"#{:x}"
+    assert n.parent == TreePath.new([])
+    assert n.name == "x"
+
+    # Test with atom interpolation (mixed)
+    n = ~n"abc.def.ghi.j#{:k}lm.nop.q#{:r}#{:s}t.uvw.xyz"
+    assert n.parent == ~p"abc.def.ghi.jklm.nop.qrst.uvw"
+    assert n.name == "xyz"
+
+    # Test with variable interpolation
+    zero = 0
+    kl = "kl"
+    r = "r"
+    s = "s"
+    sz = "ß"
+    n = ~n"#{zero}.abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz.#{sz}"
+
+    assert n.parent == ~p"0.abc.def.ghi.jklm.nop.qrst.uvw.xyz"
+    assert n.name == "ß"
   end
 end
