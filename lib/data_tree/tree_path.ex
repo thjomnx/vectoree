@@ -1,5 +1,5 @@
 defmodule DataTree.TreePath do
-  @type t :: struct()
+  @type t :: %__MODULE__{}
 
   @separator "."
   @separator_replacement "_" <> Base.encode16(@separator, case: :lower)
@@ -8,6 +8,7 @@ defmodule DataTree.TreePath do
 
   @doc ~S"""
   Creates a new struct from a singular `segment` or a list of `segments`.
+
   An empty singular `segment` results in a struct with zero segments.
   Lists of `segments` are filtered for empty elements. An empty list,
   also as a consequence after filtering, results in a struct with zero
@@ -59,8 +60,10 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  Creates a new struct by wrapping the provided list of `segments` as-is,
-  i.e. without any filtering and by expecting an already reversed order.
+  Creates a new struct by wrapping the provided list of `segments`.
+
+  The given list is taken as-is, i.e. without any filtering and by
+  expecting it to be already in reversed order.
 
   ## Examples
 
@@ -105,11 +108,7 @@ defmodule DataTree.TreePath do
     end
   end
 
-  @doc ~S"""
-  Splits, filters and reverses literals and lists of segment tokens from
-  quoted expressions, while preserving interpolations. This function is
-  merely used in macros, especially in the `~p` and `~n` sigils.
-  """
+  @doc false
   def transpose_segments(term) when is_binary(term) do
     term
     |> String.split(@separator)
@@ -163,15 +162,18 @@ defmodule DataTree.TreePath do
   def separator(), do: @separator
 
   @doc ~S"""
-  Returns the path separator character replacement as a `BitString`, which
-  is the underscore character `_` followed by the Base64 encoded form of
-  the separator character.
+  Returns the path separator character replacement as a `BitString`.
+
+  The replacement is built using the underscore character `_` followed by
+  the Base64 encoded form of the separator character.
   """
   @spec separator_replacement() :: String.t()
   def separator_replacement(), do: @separator_replacement
 
   @doc ~S"""
-  Returns the level of the path, which corresponds to the number of segments.
+  Returns the level of the path.
+
+  The level corresponds to the number of path segments.
   """
   @spec level(t) :: integer()
   def level(%__MODULE__{segments: segments}) do
@@ -202,6 +204,12 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
+      iex> DataTree.TreePath.rootname(~p"")
+      ""
+
+      iex> DataTree.TreePath.rootname(~p"data")
+      "data"
+
       iex> DataTree.TreePath.rootname(~p"data.lore.b4")
       "data"
   """
@@ -214,8 +222,20 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  TODO
+  Returns a new struct which wraps the parent segment of the given path.
+
+  ## Examples
+
+      iex> DataTree.TreePath.parent(~p"")
+      %DataTree.TreePath{segments: []}
+
+      iex> DataTree.TreePath.parent(~p"data")
+      %DataTree.TreePath{segments: []}
+
+      iex> DataTree.TreePath.parent(~p"data.lore.b4")
+      %DataTree.TreePath{segments: ["lore", "data"]}
   """
+  @spec parent(t) :: t
   def parent(%__MODULE__{segments: segments} = path) do
     case segments do
       [_ | tail] -> tail |> wrap
@@ -224,7 +244,18 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  TODO
+  Returns a new structs which wraps the base segment of the given path.
+
+  ## Examples
+
+      iex> DataTree.TreePath.base(~p"")
+      %DataTree.TreePath{segments: []}
+
+      iex> DataTree.TreePath.base(~p"data")
+      %DataTree.TreePath{segments: ["data"]}
+
+      iex> DataTree.TreePath.base(~p"data.lore.b4")
+      %DataTree.TreePath{segments: ["b4"]}
   """
   def base(%__MODULE__{segments: segments} = path) do
     case segments do
@@ -234,7 +265,18 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  TODO
+  Returns the base segment name of the given path as a `BitString`.
+
+  ## Examples
+
+      iex> DataTree.TreePath.basename(~p"")
+      ""
+
+      iex> DataTree.TreePath.basename(~p"data")
+      "data"
+
+      iex> DataTree.TreePath.basename(~p"data.lore.b4")
+      "b4"
   """
   def basename(%__MODULE__{segments: segments}) do
     case segments do
