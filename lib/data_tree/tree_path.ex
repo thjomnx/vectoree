@@ -100,10 +100,15 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @doc ~S"""
+  Splits, filters and reverses literals and lists of segment tokens from
+  quoted expressions, while preserving interpolations. This function is
+  merely used in macros, especially in the `~p` and `~n` sigils.
+  """
   def transpose_segments(term) when is_binary(term) do
     term
     |> String.split(@separator)
-    |> Enum.filter(&(&1 != ""))
+    |> Stream.filter(&(&1 != ""))
     |> Enum.reverse()
   end
 
@@ -141,15 +146,25 @@ defmodule DataTree.TreePath do
     end
 
     terms
-    |> Enum.map(&escape.(&1))
+    |> Stream.map(&escape.(&1))
     |> Enum.reduce([], reduce)
+    |> Enum.filter(&(&1 != ""))
   end
 
+  @doc ~S"""
+  Returns the path separator character as a `BitString`.
+  """
   def separator(), do: @separator
+
+  @doc ~S"""
+  Returns the path separator character replacement as a `BitString`, which
+  is the underscore character `_` followed by the Base64 encoded form of
+  the separator character.
+  """
   def separator_replacement(), do: @separator_replacement
 
   @doc ~S"""
-  TODO
+  Returns the level of the path, which corresponds to the number of segments.
   """
   def level(%__MODULE__{segments: segments}) do
     length(segments)

@@ -32,6 +32,9 @@ defmodule DataTree.TreePathTest do
     # Test whitespace preservation
     assert ~p"  a . b  .  c " == TreePath.new(["  a ", " b  ", "  c "])
 
+    # Test empty segment filtering (multi dots)
+    assert ~p".. a...b  ..c.." == TreePath.new([" a", "b  ", "c"])
+
     # Test whitespace and dot preservation with variable interpolation
     x = "  a.b"
     y = "  c  "
@@ -42,17 +45,17 @@ defmodule DataTree.TreePathTest do
     # Test with atom interpolation (single item)
     assert ~p"#{:x}" == TreePath.new(["x"])
 
-    # Test with atom interpolation (mixed)
-    p = ~p"abc.def.ghi.j#{:k}lm.nop.q#{:r}#{:s}t.uvw.xyz"
+    # Test with atom interpolation (mixed) including empty segment filtering (multi dots)
+    p = ~p".abc.def..ghi.j#{:k}lm.nop.q#{:r}#{:s}t...uvw.xyz..."
     assert p == TreePath.new(["abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz"])
 
-    # Test with variable interpolation
+    # Test with variable interpolation including empty segment filtering (multi dots)
     zero = 0
     kl = "kl"
     r = "r"
     s = "s"
     sz = "ß"
-    p = ~p"#{zero}.abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz.#{sz}"
+    p = ~p".#{zero}.abc.def..ghi.j#{kl}m.nop.q#{r}#{s}t...uvw.xyz.#{sz}..."
 
     assert p == TreePath.new(["0", "abc", "def", "ghi", "jklm", "nop", "qrst", "uvw", "xyz", "ß"])
   end
