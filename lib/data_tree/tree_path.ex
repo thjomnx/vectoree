@@ -1,8 +1,14 @@
 defmodule DataTree.TreePath do
-  @type t :: %__MODULE__{}
+  @moduledoc """
+  TODO
+  """
 
   @separator "."
   @separator_replacement "_" <> Base.encode16(@separator, case: :lower)
+
+  @type t :: %__MODULE__{
+          segments: list(String.t())
+        }
 
   defstruct segments: []
 
@@ -244,7 +250,7 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  Returns a new structs which wraps the base segment of the given path.
+  Returns a new struct which wraps the base segment of the given path.
 
   ## Examples
 
@@ -257,6 +263,7 @@ defmodule DataTree.TreePath do
       iex> DataTree.TreePath.base(~p"data.lore.b4")
       %DataTree.TreePath{segments: ["b4"]}
   """
+  @spec base(t) :: t
   def base(%__MODULE__{segments: segments} = path) do
     case segments do
       [head | _] -> head |> new
@@ -278,6 +285,7 @@ defmodule DataTree.TreePath do
       iex> DataTree.TreePath.basename(~p"data.lore.b4")
       "b4"
   """
+  @spec basename(t) :: String.t()
   def basename(%__MODULE__{segments: segments}) do
     case segments do
       [head | _] -> head
@@ -286,8 +294,17 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  TODO
+  Returns a new struct which wraps a sibling of the given path.
+
+  # Examples
+
+      iex> DataTree.TreePath.sibling(~p"data.lore", "b4")
+      %DataTree.TreePath{segments: ["b4", "data"]}
+
+      iex> DataTree.TreePath.sibling(~p"", "b4")
+      %DataTree.TreePath{segments: ["b4"]}
   """
+  @spec sibling(t, String.t()) :: t
   def sibling(%__MODULE__{} = path, segment) when is_binary(segment) do
     case segment do
       "" -> path
@@ -296,8 +313,20 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  TODO
+  Returns a new struct with the `segment` being appended on the given path.
+
+  ## Examples
+
+      iex> DataTree.TreePath.append(~p"", "data")
+      %DataTree.TreePath{segments: ["data"]}
+
+      iex> DataTree.TreePath.append(~p"data.lore", "b4")
+      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+
+      iex> DataTree.TreePath.append(~p"data.lore", ~p"b4.soong")
+      %DataTree.TreePath{segments: ["soong", "b4", "lore", "data"]}
   """
+  @spec append(t, String.t()) :: t
   def append(%__MODULE__{segments: segments} = path, segment) when is_binary(segment) do
     case segment do
       "" -> path
@@ -305,13 +334,23 @@ defmodule DataTree.TreePath do
     end
   end
 
+  @spec append(t, t) :: t
   def append(%__MODULE__{segments: segments}, %__MODULE__{segments: more}) do
     (more ++ segments) |> wrap
   end
 
   @doc ~S"""
-  TODO
+  Checks if a path starts with the given `prefix`.
+
+  ## Examples
+
+      iex> DataTree.TreePath.starts_with?(~p"data.lore.b4", "data")
+      true
+
+      iex> DataTree.TreePath.starts_with?(~p"data.lore.b4", "lore")
+      false
   """
+  @spec starts_with?(t, String.t()) :: boolean()
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
     fun = &(segments |> Enum.reverse() |> List.starts_with?(&1))
 
@@ -323,8 +362,17 @@ defmodule DataTree.TreePath do
   end
 
   @doc ~S"""
-  TODO
+  Checks if a path ends with the given `suffix`.
+
+  ## Examples
+
+      iex> DataTree.TreePath.ends_with?(~p"data.lore.b4", "b4")
+      true
+
+      iex> DataTree.TreePath.ends_with?(~p"data.lore.b4", "lore")
+      false
   """
+  @spec ends_with?(t, String.t()) :: boolean()
   def ends_with?(%__MODULE__{segments: segments}, suffix) do
     fun = &List.starts_with?(segments, &1)
 
