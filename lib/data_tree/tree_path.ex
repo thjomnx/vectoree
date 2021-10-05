@@ -1,6 +1,15 @@
 defmodule DataTree.TreePath do
   @moduledoc """
-  TODO
+  A canonical path implementation for tree structures.
+
+  The functions in this module handle `TreePath` structs, which encapsulate
+  path `segments` in a list in reverse order. There is no distinction between
+  absolute and relative paths. Printable representations of such a struct use
+  the dot `.` character as separator between segments.
+
+  Developers should avoid creating the `TreePath` struct directly and instead
+  rely on the functions provided by this module, including the provided sigil
+  macros.
   """
 
   @separator "."
