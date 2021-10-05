@@ -358,14 +358,16 @@ defmodule DataTree.TreePath do
 
       iex> DataTree.TreePath.starts_with?(~p"data.lore.b4", "lore")
       false
+
+      iex> DataTree.TreePath.starts_with?(~p"data.lore.b4", ~p"data.lore")
+      true
   """
-  @spec starts_with?(t, String.t()) :: boolean()
+  @spec starts_with?(t, String.t() | t) :: boolean()
   def starts_with?(%__MODULE__{segments: segments}, prefix) do
     fun = &(segments |> Enum.reverse() |> List.starts_with?(&1))
 
     cond do
       is_binary(prefix) -> fun.([prefix])
-      is_list(prefix) -> fun.(prefix)
       is_struct(prefix, __MODULE__) -> fun.(prefix.segments |> Enum.reverse())
     end
   end
@@ -380,14 +382,16 @@ defmodule DataTree.TreePath do
 
       iex> DataTree.TreePath.ends_with?(~p"data.lore.b4", "lore")
       false
+
+      iex> DataTree.TreePath.ends_with?(~p"data.lore.b4", ~p"lore.b4")
+      true
   """
-  @spec ends_with?(t, String.t()) :: boolean()
+  @spec ends_with?(t, String.t() | t) :: boolean()
   def ends_with?(%__MODULE__{segments: segments}, suffix) do
     fun = &List.starts_with?(segments, &1)
 
     cond do
       is_binary(suffix) -> fun.([suffix])
-      is_list(suffix) -> fun.(suffix)
       is_struct(suffix, __MODULE__) -> fun.(suffix.segments)
     end
   end
