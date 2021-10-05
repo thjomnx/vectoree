@@ -46,7 +46,7 @@ defmodule TryoutServer do
 
     TreePath.parent(p) |> IO.puts()
     TreePath.append(p, "myClock") |> IO.puts()
-    TreePath.append(p, ["remote", "peer", "dark_star"]) |> IO.puts()
+    TreePath.append(p, TreePath.new(["remote", "peer", "dark_star"])) |> IO.puts()
     TreePath.root(p) |> IO.puts()
     TreePath.new("data") |> TreePath.parent() |> IO.puts()
     TreePath.sibling(p, "monitors") |> IO.puts()
