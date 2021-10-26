@@ -13,32 +13,6 @@ defmodule DataTreeTest do
     assert {:ok, :testtree} == DataTree.new(name: :testtree)
   end
 
-  test "subtree" do
-    DataTree.new(name: :testtree)
-    tp = TreePath.new(["a", "b", "c", "d"])
-
-    for i <- 0..9 do
-      DataTree.insert(:testtree, Node.new(tp, "n#{i}"))
-    end
-
-    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a"]))
-    assert length(subtree) == 14
-
-    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b"]))
-    assert length(subtree) == 13
-
-    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b", "c"]))
-    assert length(subtree) == 12
-
-    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b", "c", "d"]))
-    assert length(subtree) == 11
-
-    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b", "c", "d", "n5"]))
-    assert length(subtree) == 1
-
-    {:error, _reason} = DataTree.subtree(:testtree, TreePath.new(["invalid"]))
-  end
-
   test "children" do
     DataTree.new(name: :testtree)
     tp = TreePath.new(["a", "b", "c", "d"])
@@ -63,6 +37,32 @@ defmodule DataTreeTest do
     assert length(children) == 1
 
     {:error, _reason} = DataTree.children(:testtree, TreePath.new(["invalid"]))
+  end
+
+  test "subtree" do
+    DataTree.new(name: :testtree)
+    tp = TreePath.new(["a", "b", "c", "d"])
+
+    for i <- 0..9 do
+      DataTree.insert(:testtree, Node.new(tp, "n#{i}"))
+    end
+
+    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a"]))
+    assert length(subtree) == 14
+
+    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b"]))
+    assert length(subtree) == 13
+
+    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b", "c"]))
+    assert length(subtree) == 12
+
+    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b", "c", "d"]))
+    assert length(subtree) == 11
+
+    {:ok, subtree} = DataTree.subtree(:testtree, TreePath.new(["a", "b", "c", "d", "n5"]))
+    assert length(subtree) == 1
+
+    {:error, _reason} = DataTree.subtree(:testtree, TreePath.new(["invalid"]))
   end
 
   test "insert" do
