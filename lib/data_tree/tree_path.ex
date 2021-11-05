@@ -126,18 +126,19 @@ defmodule DataTree.TreePath do
   @doc false
   def transpose_segments(term) when is_binary(term) do
     term
+    |> Macro.unescape_string()
     |> String.split(@separator)
     |> Stream.filter(&(&1 != ""))
     |> Enum.reverse()
   end
 
   def transpose_segments(terms) when is_list(terms) do
-    escape = fn
+    extractor = fn
       {:"::", _, [expr, _]} -> expr
       binary when is_binary(binary) -> Macro.unescape_string(binary)
     end
 
-    reduce = fn term, acc ->
+    transposer = fn term, acc ->
       acc_head = List.first(acc)
 
       cond do
@@ -165,8 +166,8 @@ defmodule DataTree.TreePath do
     end
 
     terms
-    |> Stream.map(&escape.(&1))
-    |> Enum.reduce([], reduce)
+    |> Stream.map(&extractor.(&1))
+    |> Enum.reduce([], transposer)
     |> Enum.filter(&(&1 != ""))
   end
 
