@@ -13,10 +13,10 @@ defmodule DataTree do
 
   # @elem_pos_path @idx_path + 1
   # @elem_pos_type @idx_type + 1
-  # @elem_pos_value @idx_value + 1
-  # @elem_pos_unit @idx_unit + 1
-  # @elem_pos_modified @idx_modified + 1
-  # @elem_pos_status @idx_status + 1
+  @elem_pos_value @idx_value + 1
+  @elem_pos_unit @idx_unit + 1
+  @elem_pos_modified @idx_modified + 1
+  @elem_pos_status @idx_status + 1
   @elem_pos_children @idx_children + 1
 
   def new(opts) do
@@ -100,6 +100,22 @@ defmodule DataTree do
         :ets.insert(table, node_to_tuple(missing_parent))
         link_parent_of(table, missing_parent)
     end
+  end
+
+  def update_value(table, %TreePath{} = path, value) do
+    :ets.update_element(table, path, {@elem_pos_value, value})
+  end
+
+  def update_unit(table, %TreePath{} = path, unit) do
+    :ets.update_element(table, path, {@elem_pos_unit, unit})
+  end
+
+  def update_time_modified(table, %TreePath{} = path, timestamp) do
+    :ets.update_element(table, path, {@elem_pos_modified, timestamp})
+  end
+
+  def update_status(table, %TreePath{} = path, status) do
+    :ets.update_element(table, path, {@elem_pos_status, status})
   end
 
   def delete(table, %TreePath{} = path) do
