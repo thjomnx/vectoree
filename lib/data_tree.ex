@@ -81,6 +81,14 @@ defmodule DataTree do
     {:ok, node}
   end
 
+  def insert(table, subtree) when is_list(subtree) do
+    tuples = for node <- subtree, do: node_to_tuple(node)
+    :ets.insert(table, tuples)
+    last = List.last(subtree)
+    update_parent(table, last)
+    {:ok, last}
+  end
+
   defp update_parent(table, %Node{parent: parent, name: name}) do
     case :ets.lookup(table, parent) do
       [{_, _, _, _, _, _, children}] ->
@@ -109,11 +117,7 @@ defmodule DataTree do
 
     case :ets.lookup(table, path) do
       [{_, _, _, _, _, _, children}] ->
-        children_paths =
-          for c <- children do
-            TreePath.append(path, c)
-          end
-
+        children_paths = for c <- children, do: TreePath.append(path, c)
         :ets.delete(table, path)
         Enum.each(children_paths, &delete(table, &1))
 
