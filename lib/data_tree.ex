@@ -30,7 +30,7 @@ defmodule DataTree do
     for i <- 1..100, j <- 1..100, k <- 1..20 do
       node = ~p"data.#{i}.#{j}" |> Node.new("node_#{k}")
       :ets.insert(table, node_to_tuple(node))
-      update_parent(table, node)
+      link_parent_of(table, node)
     end
 
     :ok
@@ -77,7 +77,7 @@ defmodule DataTree do
 
   def insert(table, %Node{} = node) do
     :ets.insert(table, node_to_tuple(node))
-    update_parent(table, node)
+    link_parent_of(table, node)
     {:ok, node}
   end
 
@@ -85,11 +85,11 @@ defmodule DataTree do
     tuples = for node <- subtree, do: node_to_tuple(node)
     :ets.insert(table, tuples)
     last = List.last(subtree)
-    update_parent(table, last)
+    link_parent_of(table, last)
     {:ok, last}
   end
 
-  defp update_parent(table, %Node{parent: parent, name: name}) do
+  defp link_parent_of(table, %Node{parent: parent, name: name}) do
     case :ets.lookup(table, parent) do
       [{_, _, _, _, _, _, children}] ->
         new_children = MapSet.put(children, name)
@@ -98,22 +98,12 @@ defmodule DataTree do
       [] ->
         missing_parent = Node.new(parent) |> Node.add_child(name)
         :ets.insert(table, node_to_tuple(missing_parent))
-        update_parent(table, missing_parent)
+        link_parent_of(table, missing_parent)
     end
   end
 
   def delete(table, %TreePath{} = path) do
-    parent = TreePath.parent(path)
-    name = TreePath.basename(path)
-
-    case :ets.lookup(table, parent) do
-      [{_, _, _, _, _, _, children}] ->
-        new_children = MapSet.delete(children, name)
-        :ets.update_element(table, parent, {@elem_pos_children, new_children})
-
-      [] ->
-        :ok
-    end
+    unlink_parent_of(table, path)
 
     case :ets.lookup(table, path) do
       [{_, _, _, _, _, _, children}] ->
@@ -123,6 +113,20 @@ defmodule DataTree do
 
       [] ->
         :ok
+    end
+  end
+
+  defp unlink_parent_of(table, %TreePath{} = path) do
+    parent = TreePath.parent(path)
+    name = TreePath.basename(path)
+
+    case :ets.lookup(table, parent) do
+      [{_, _, _, _, _, _, children}] ->
+        new_children = MapSet.delete(children, name)
+        :ets.update_element(table, parent, {@elem_pos_children, new_children})
+
+      [] ->
+        false
     end
   end
 
