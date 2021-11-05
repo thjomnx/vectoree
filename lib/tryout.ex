@@ -82,6 +82,14 @@ defmodule Tryout do
     {:ok, sub} = DataTree.subtree(:ptree, ~p"data.local")
     sub |> IO.inspect()
     length(sub) |> IO.puts()
+
+    IO.puts("-------------------------")
+
+    DataTree.delete(:ptree, ~p"data.local.cluster")
+
+    {:ok, sub} = DataTree.subtree(:ptree, ~p"data.local")
+    sub |> IO.inspect()
+    length(sub) |> IO.puts()
   end
 
   def ets_matching do

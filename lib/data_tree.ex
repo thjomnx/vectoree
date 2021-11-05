@@ -94,6 +94,34 @@ defmodule DataTree do
     end
   end
 
+  def delete(table, %TreePath{} = path) do
+    parent = TreePath.parent(path)
+    name = TreePath.basename(path)
+
+    case :ets.lookup(table, parent) do
+      [{_, _, _, _, _, _, children}] ->
+        new_children = MapSet.delete(children, name)
+        :ets.update_element(table, parent, {@elem_pos_children, new_children})
+
+      [] ->
+        :ok
+    end
+
+    case :ets.lookup(table, path) do
+      [{_, _, _, _, _, _, children}] ->
+        children_paths =
+          for c <- children do
+            TreePath.append(path, c)
+          end
+
+        :ets.delete(table, path)
+        Enum.each(children_paths, &delete(table, &1))
+
+      [] ->
+        :ok
+    end
+  end
+
   defp tuple_to_node(tuple) when is_tuple(tuple) do
     path = elem(tuple, @idx_path)
 

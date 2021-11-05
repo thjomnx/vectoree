@@ -76,4 +76,26 @@ defmodule DataTreeTest do
     assert node.name == name
     assert DataTree.size(:testtree) == 5
   end
+
+  test "delete" do
+    DataTree.new(name: :testtree)
+
+    name = "d"
+    parent = TreePath.new(["a", "b", "c"])
+    {:ok, _node} = DataTree.insert(:testtree, Node.new(parent, name))
+
+    :ok = DataTree.delete(:testtree, TreePath.new(["a", "b", "c", "d"]))
+
+    {:ok, _node} = DataTree.node(:testtree, TreePath.new(["a"]))
+    {:ok, _node} = DataTree.node(:testtree, TreePath.new(["a", "b"]))
+    {:ok, _node} = DataTree.node(:testtree, TreePath.new(["a", "b", "c"]))
+    {:error, _msg} = DataTree.node(:testtree, TreePath.new(["a", "b", "c", "d"]))
+
+    :ok = DataTree.delete(:testtree, TreePath.new(["a", "b"]))
+
+    {:ok, _node} = DataTree.node(:testtree, TreePath.new(["a"]))
+    {:error, _msg} = DataTree.node(:testtree, TreePath.new(["a", "b"]))
+    {:error, _msg} = DataTree.node(:testtree, TreePath.new(["a", "b", "c"]))
+    {:error, _msg} = DataTree.node(:testtree, TreePath.new(["a", "b", "c", "d"]))
+  end
 end
