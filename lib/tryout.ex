@@ -18,9 +18,7 @@ defmodule Tryout do
     {:ok, data} = DataTree.insert(:ptree, ~n"data")
     {:ok, local} = DataTree.insert(:ptree, ~n"data.local")
 
-    timestamp = DateTime.utc_now() |> DateTime.to_unix()
-
-    n = Node.new(~p"data.local", "ticks", :int32, timestamp, :milliseconds)
+    n = Node.new(~p"data.local", "ticks", :int32, System.system_time(), :nanoseconds)
     {:ok, ticks} = DataTree.insert(:ptree, n)
 
     IO.inspect(data)
@@ -90,6 +88,18 @@ defmodule Tryout do
     {:ok, sub} = DataTree.subtree(:ptree, ~p"data.local")
     sub |> IO.inspect()
     length(sub) |> IO.puts()
+
+    IO.puts("-------------------------")
+
+    {:ok, ticks} = DataTree.node(:ptree, ~p"data.local.ticks")
+    IO.puts("BEFORE UPDATE")
+    IO.inspect(ticks)
+
+    DataTree.update_value(:ptree, ~p"data.local.ticks", System.system_time())
+
+    {:ok, ticks} = DataTree.node(:ptree, ~p"data.local.ticks")
+    IO.puts("AFTER UPDATE")
+    IO.inspect(ticks)
   end
 
   def ets_matching do

@@ -7,8 +7,8 @@ defmodule DataTree.Node do
     :type,
     :value,
     :unit,
-    modified: 0,
     status: 0,
+    modified: 0,
     children: MapSet.new()
   ]
 
@@ -24,8 +24,8 @@ defmodule DataTree.Node do
         type \\ nil,
         value \\ nil,
         unit \\ nil,
-        modified \\ 0,
         status \\ 0,
+        modified \\ 0,
         children \\ MapSet.new()
       )
       when is_binary(name) do
@@ -35,8 +35,8 @@ defmodule DataTree.Node do
       type: type,
       value: value,
       unit: unit,
-      modified: modified,
       status: status,
+      modified: modified,
       children: children
     }
   end

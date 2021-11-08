@@ -7,16 +7,16 @@ defmodule DataTree do
   @idx_type 1
   @idx_value 2
   @idx_unit 3
-  @idx_modified 4
-  @idx_status 5
+  @idx_status 4
+  @idx_modified 5
   @idx_children 6
 
   # @elem_pos_path @idx_path + 1
   # @elem_pos_type @idx_type + 1
   @elem_pos_value @idx_value + 1
   @elem_pos_unit @idx_unit + 1
-  @elem_pos_modified @idx_modified + 1
   @elem_pos_status @idx_status + 1
+  @elem_pos_modified @idx_modified + 1
   @elem_pos_children @idx_children + 1
 
   def new(opts) do
@@ -103,19 +103,28 @@ defmodule DataTree do
   end
 
   def update_value(table, %TreePath{} = path, value) do
-    :ets.update_element(table, path, {@elem_pos_value, value})
+    :ets.update_element(table, path, [
+      {@elem_pos_value, value},
+      {@elem_pos_modified, system_time()}
+    ])
   end
 
   def update_unit(table, %TreePath{} = path, unit) do
-    :ets.update_element(table, path, {@elem_pos_unit, unit})
+    :ets.update_element(table, path, [
+      {@elem_pos_unit, unit},
+      {@elem_pos_modified, system_time()}
+    ])
+  end
+
+  def update_status(table, %TreePath{} = path, status) do
+    :ets.update_element(table, path, [
+      {@elem_pos_status, status},
+      {@elem_pos_modified, system_time()}
+    ])
   end
 
   def update_time_modified(table, %TreePath{} = path, timestamp) do
     :ets.update_element(table, path, {@elem_pos_modified, timestamp})
-  end
-
-  def update_status(table, %TreePath{} = path, status) do
-    :ets.update_element(table, path, {@elem_pos_status, status})
   end
 
   def delete(table, %TreePath{} = path) do
@@ -171,5 +180,9 @@ defmodule DataTree do
       node.status,
       node.children
     }
+  end
+
+  defp system_time() do
+    System.system_time()
   end
 end
