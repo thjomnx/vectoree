@@ -59,4 +59,17 @@ defmodule PerfTest do
         IO.puts(reason)
     end
   end
+
+  def update_many do
+    IO.puts("DataTree.update_many")
+
+    path = ~p"data.23.42.node_11"
+    start = DateTime.utc_now()
+
+    for i <- 1..10000000 do
+      DataTree.update_value(:ptree, path, i)
+    end
+
+    DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
+  end
 end
