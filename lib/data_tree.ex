@@ -164,8 +164,8 @@ defmodule DataTree do
       elem(tuple, @idx_type),
       elem(tuple, @idx_value),
       elem(tuple, @idx_unit),
-      elem(tuple, @idx_modified),
       elem(tuple, @idx_status),
+      elem(tuple, @idx_modified),
       elem(tuple, @idx_children)
     )
   end
@@ -176,8 +176,8 @@ defmodule DataTree do
       node.type,
       node.value,
       node.unit,
-      node.modified,
       node.status,
+      node.modified,
       node.children
     }
   end
