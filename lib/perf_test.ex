@@ -66,7 +66,7 @@ defmodule PerfTest do
     path = ~p"data.23.42.node_11"
     start = DateTime.utc_now()
 
-    for i <- 1..10000000 do
+    for i <- 1..10_000_000 do
       DataTree.update_value(:ptree, path, i)
     end
 
