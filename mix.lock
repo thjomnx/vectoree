@@ -1,4 +1,6 @@
 %{
+  "benchee": {:hex, :benchee, "1.0.1", "66b211f9bfd84bd97e6d1beaddf8fc2312aaabe192f776e8931cb0c16f53a521", [:mix], [{:deep_merge, "~> 1.0", [hex: :deep_merge, repo: "hexpm", optional: false]}], "hexpm", "3ad58ae787e9c7c94dd7ceda3b587ec2c64604563e049b2a0e8baafae832addb"},
+  "deep_merge": {:hex, :deep_merge, "1.0.0", "b4aa1a0d1acac393bdf38b2291af38cb1d4a52806cf7a4906f718e1feb5ee961", [:mix], [], "hexpm", "ce708e5f094b9cd4e8f2be4f00d2f4250c4095be93f8cd6d018c753894885430"},
   "ex2ms": {:hex, :ex2ms, "1.6.0", "f39bbd9ff1b0f27b3f707bab2d167066dd8965e7df1149b962d94c74615d0e09", [:mix], [], "hexpm", "0d1ab5e08421af5cd69146efb408dbb1ff77f38a2f4df5f086f2512dc8cf65bf"},
   "ex_shards": {:hex, :ex_shards, "0.2.1", "65c14d5ae71d6c4b617531f29923f8e57007e5b9874c100a11163c55ec0c7b21", [:mix], [{:ex2ms, "~> 1.4", [hex: :ex2ms, repo: "hexpm", optional: false]}, {:shards, "~> 0.5", [hex: :shards, repo: "hexpm", optional: false]}], "hexpm", "e81a99fc702a90a35b4059dee0c707f05060d27f3820af5c4fe0e1e2dc258dbf"},
   "shards": {:hex, :shards, "0.6.2", "e05d05537883220c3b8a8f9d40d5c8ba7ff6064c63ebb6b23046972f6863b2d1", [:make, :rebar3], [], "hexpm", "58afa3712f1f1256a2a15e39fa95b7cd758087aaa7a25beaf786daabd87890f0"},

@@ -43,7 +43,11 @@ defmodule PerfTest do
     DataTree.new(name: :ptree)
 
     start = DateTime.utc_now()
-    DataTree.populate(:ptree)
+
+    for i <- 1..100, j <- 1..100, k <- 1..20 do
+      DataTree.insert(:ptree, ~n"data.#{i}.#{j}.node_#{k}")
+    end
+
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
     IO.puts("DataTree.subtree")

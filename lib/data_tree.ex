@@ -1,6 +1,4 @@
 defmodule DataTree do
-  import DataTree.TreePath
-
   alias DataTree.{Node, TreePath}
 
   @idx_path 0
@@ -21,19 +19,9 @@ defmodule DataTree do
 
   def new(opts) do
     table = Keyword.fetch!(opts, :name)
-    table_ref = :ets.new(table, [:named_table])
+    visibility = Keyword.get(opts, :visibility, :protected)
+    table_ref = :ets.new(table, [:named_table, visibility])
     {:ok, table_ref}
-  end
-
-  # Only for development/benchmarking purpose
-  def populate(table) do
-    for i <- 1..100, j <- 1..100, k <- 1..20 do
-      node = ~p"data.#{i}.#{j}" |> Node.new("node_#{k}")
-      :ets.insert(table, node_to_tuple(node))
-      link_parent_of(table, node)
-    end
-
-    :ok
   end
 
   def size(table) do
