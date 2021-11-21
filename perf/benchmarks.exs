@@ -20,7 +20,7 @@ for i <- 1..100, j <- 1..100, k <- 1..20 do
 end
 
 for i <- 1..10, j <- 1..10, k <- 1..10, l <- 1..10, m <- 1..10, n <- 1..20 do
-  DataTree.insert(:vt3, ~n"data.#{i}.#{j}.#{k}.#{l}.#{m}node_#{n}")
+  DataTree.insert(:vt3, ~n"data.#{i}.#{j}.#{k}.#{l}.#{m}.node_#{n}")
 end
 
 for i <- 1..1000, j <- 1..1000, k <- 1..10 do
