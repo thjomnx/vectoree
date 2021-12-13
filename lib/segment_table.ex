@@ -1,42 +1,38 @@
 defmodule SegmentTable do
-  use GenServer
-
   alias DataTree.TreePath
 
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, 1, opts)
+  defstruct [
+    :counter,
+    forward: Map.new(),
+    backward: Map.new()
+  ]
+
+  def new(counter_start \\ 1) when is_number(counter_start) do
+    %__MODULE__{counter: counter_start}
   end
 
-  def map(pid, %TreePath{segments: segments}) do
-    GenServer.call(pid, segments)
-  end
-
-  def map_to_tuple(pid, %TreePath{} = path) do
-    map(pid, path) |> List.to_tuple()
-  end
-
-  @impl true
-  def init(counter_start) do
-    {:ok, {Map.new(), counter_start}}
-  end
-
-  @impl true
-  def handle_call(segments, _from, {dict, counter}) do
+  def map(%__MODULE__{} = table, %TreePath{segments: segments}) do
     fun = fn segment, acc ->
-      {dict, counter} = acc
-
-      case Map.fetch(dict, segment) do
+      case Map.fetch(acc.forward, segment) do
         {:ok, value} ->
           {value, acc}
 
         :error ->
-          dict = Map.put(dict, segment, counter)
-          {counter, {dict, counter + 1}}
+          new_fwd = Map.put(acc.forward, segment, acc.counter)
+          new_bwd = Map.put(acc.backward, acc.counter, segment)
+          {acc.counter, %{acc | counter: acc.counter + 1, forward: new_fwd, backward: new_bwd}}
       end
     end
 
-    {path_tuple, acc} = Enum.map_reduce(segments, {dict, counter}, fun)
+    Enum.map_reduce(segments, table, fun)
+  end
 
-    {:reply, path_tuple, acc}
+  def map(%__MODULE__{} = table, segments) when is_list(segments) do
+    list =
+      for s <- segments do
+        Map.get(table.backward, s)
+      end
+
+    {TreePath.wrap(list), table}
   end
 end
