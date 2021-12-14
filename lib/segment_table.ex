@@ -12,7 +12,7 @@ defmodule SegmentTable do
   end
 
   def map(%__MODULE__{} = table, %TreePath{segments: segments}) do
-    fun = fn segment, acc ->
+    reducer = fn segment, acc ->
       case Map.fetch(acc.forward, segment) do
         {:ok, value} ->
           {value, acc}
@@ -24,15 +24,16 @@ defmodule SegmentTable do
       end
     end
 
-    Enum.map_reduce(segments, table, fun)
+    {reduced, new_table} = Enum.map_reduce(segments, table, reducer)
+    {List.to_tuple(reduced), new_table}
   end
 
-  def map(%__MODULE__{} = table, segments) when is_list(segments) do
-    list =
-      for s <- segments do
+  def map(%__MODULE__{} = table, segments) when is_tuple(segments) do
+    expanded =
+      for s <- Tuple.to_list(segments) do
         Map.get(table.backward, s)
       end
 
-    {TreePath.wrap(list), table}
+    {TreePath.wrap(expanded), table}
   end
 end

@@ -14,16 +14,16 @@ defmodule SegmentTableTest do
 
     # Test forward mapping
     {p0, table} = SegmentTable.map(table, TreePath.new(["a", "b", "c", "d", "e"]))
-    assert p0 == [1, 2, 3, 4, 5]
+    assert p0 == {1, 2, 3, 4, 5}
 
     {p1, table} = SegmentTable.map(table, TreePath.new(["a", "b", "c", "d", "e"]))
-    assert p1 == [1, 2, 3, 4, 5]
+    assert p1 == {1, 2, 3, 4, 5}
 
     {p2, table} = SegmentTable.map(table, TreePath.new(["x", "y", "z"]))
-    assert p2 == [6, 7, 8]
+    assert p2 == {6, 7, 8}
 
     {p3, table} = SegmentTable.map(table, TreePath.new(["b", "x", "r", "e", "k"]))
-    assert p3 == [9, 1, 10, 8, 4]
+    assert p3 == {9, 1, 10, 8, 4}
 
     # Test backward mapping
     {s0, table} = SegmentTable.map(table, p0)
