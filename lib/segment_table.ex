@@ -1,6 +1,4 @@
 defmodule SegmentTable do
-  alias DataTree.TreePath
-
   defstruct [
     :counter,
     forward: Map.new(),
@@ -11,8 +9,8 @@ defmodule SegmentTable do
     %__MODULE__{counter: counter_start}
   end
 
-  def map(%__MODULE__{} = table, %TreePath{segments: segments}) do
-    reducer = fn segment, acc ->
+  def map(%__MODULE__{} = table, segments) when is_list(segments) do
+    mapper = fn segment, acc ->
       case Map.fetch(acc.forward, segment) do
         {:ok, value} ->
           {value, acc}
@@ -24,16 +22,18 @@ defmodule SegmentTable do
       end
     end
 
-    {reduced, new_table} = Enum.map_reduce(segments, table, reducer)
+    {reduced, new_table} = Enum.map_reduce(segments, table, mapper)
     {List.to_tuple(reduced), new_table}
   end
 
   def map(%__MODULE__{} = table, segments) when is_tuple(segments) do
+    upper_bound = tuple_size(segments) - 1
+
     expanded =
-      for s <- Tuple.to_list(segments) do
-        Map.get(table.backward, s)
+      for i <- 0..upper_bound do
+        Map.get(table.backward, elem(segments, i))
       end
 
-    {TreePath.wrap(expanded), table}
+    {expanded, table}
   end
 end
