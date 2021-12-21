@@ -1,4 +1,4 @@
-defmodule DataTreeServer do
+defmodule DataTree do
   use GenServer
 
   import DataTree.Node

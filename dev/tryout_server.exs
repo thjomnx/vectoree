@@ -2,17 +2,17 @@ import DataTree.{Node, TreePath}
 
 alias DataTree.{Node, TreePath}
 
-DataTreeServer.start_link(name: :ptree)
+DataTree.start_link(name: :ptree)
 
 # -----------
 
-{:ok, data} = DataTreeServer.insert(:ptree, ~n"data")
-{:ok, local} = DataTreeServer.insert(:ptree, ~n"data.local")
+{:ok, data} = DataTree.insert(:ptree, ~n"data")
+{:ok, local} = DataTree.insert(:ptree, ~n"data.local")
 
 timestamp = DateTime.utc_now() |> DateTime.to_unix()
 
 n = Node.new(~p"data.local", "ticks", :int32, timestamp, :milliseconds)
-{:ok, ticks} = DataTreeServer.insert(:ptree, n)
+{:ok, ticks} = DataTree.insert(:ptree, n)
 
 IO.inspect(data)
 IO.inspect(local)
@@ -24,11 +24,11 @@ Enum.map(
   18..28,
   fn i ->
     name = "param" <> Integer.to_string(i)
-    DataTreeServer.insert(:ptree, ~n"data.#{name}")
+    DataTree.insert(:ptree, ~n"data.#{name}")
   end
 )
 
-DataTreeServer.lookup(:ptree, ~p"data.param23") |> IO.inspect()
+DataTree.lookup(:ptree, ~p"data.param23") |> IO.inspect()
 
 # -----------
 
@@ -63,13 +63,13 @@ TreePath.ends_with?(p, TreePath.append(p, "blah")) |> IO.puts()
 
 IO.puts("-------------------------")
 
-DataTreeServer.insert(:ptree, ~n"data.local.cluster")
-DataTreeServer.insert(:ptree, ~n"data.local.cluster.node0")
-DataTreeServer.insert(:ptree, ~n"data.local.cluster.node0.state")
-DataTreeServer.insert(:ptree, ~n"data.local.cluster.node1")
-DataTreeServer.insert(:ptree, ~n"data.local.cluster.node1.state")
-DataTreeServer.insert(:ptree, ~n"data.local.cluster.mode")
+DataTree.insert(:ptree, ~n"data.local.cluster")
+DataTree.insert(:ptree, ~n"data.local.cluster.node0")
+DataTree.insert(:ptree, ~n"data.local.cluster.node0.state")
+DataTree.insert(:ptree, ~n"data.local.cluster.node1")
+DataTree.insert(:ptree, ~n"data.local.cluster.node1.state")
+DataTree.insert(:ptree, ~n"data.local.cluster.mode")
 
-sub = DataTreeServer.subtree(:ptree, ~p"data.local")
+sub = DataTree.subtree(:ptree, ~p"data.local")
 sub |> IO.inspect()
 length(sub) |> IO.puts()
