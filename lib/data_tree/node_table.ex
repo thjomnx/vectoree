@@ -1,4 +1,4 @@
-defmodule DataTree do
+defmodule DataTree.NodeTable do
   alias DataTree.{Node, TreePath}
 
   @idx_path 0

@@ -1,22 +1,24 @@
 import DataTree.{Node, TreePath}
 
-DataTree.new(name: :ptree)
+alias DataTree.NodeTable
 
-IO.puts("DataTree.populate")
+NodeTable.new(name: :ptree)
+
+IO.puts("NodeTable.populate")
 
 start = DateTime.utc_now()
 
 for i <- 1..100, j <- 1..100, k <- 1..20 do
-  DataTree.insert(:ptree, ~n"data.#{i}.#{j}.node_#{k}")
+  NodeTable.insert(:ptree, ~n"data.#{i}.#{j}.node_#{k}")
 end
 
 DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
 
-IO.puts("DataTree.subtree")
+IO.puts("NodeTable.subtree")
 
 start = DateTime.utc_now()
 
-case DataTree.subtree(:ptree, ~p"data") do
+case NodeTable.subtree(:ptree, ~p"data") do
   {:ok, sub} ->
     DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()
     length(sub) |> IO.puts()
@@ -25,13 +27,13 @@ case DataTree.subtree(:ptree, ~p"data") do
     IO.puts(reason)
 end
 
-IO.puts("DataTree.update_many")
+IO.puts("NodeTable.update_many")
 
 path = ~p"data.23.42.node_11"
 start = DateTime.utc_now()
 
 for i <- 1..10_000_000 do
-  DataTree.update_value(:ptree, path, i)
+  NodeTable.update_value(:ptree, path, i)
 end
 
 DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.puts()

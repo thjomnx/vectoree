@@ -1,16 +1,16 @@
 import DataTree.{Node, TreePath}
 
-alias DataTree.{Node, TreePath}
+alias DataTree.{NodeTable, Node, TreePath}
 
-DataTree.new(name: :ptree)
+NodeTable.new(name: :ptree)
 
 # -----------
 
-{:ok, data} = DataTree.insert(:ptree, ~n"data")
-{:ok, local} = DataTree.insert(:ptree, ~n"data.local")
+{:ok, data} = NodeTable.insert(:ptree, ~n"data")
+{:ok, local} = NodeTable.insert(:ptree, ~n"data.local")
 
 n = Node.new(~p"data.local", "ticks", :int32, System.system_time(), :nanoseconds)
-{:ok, ticks} = DataTree.insert(:ptree, n)
+{:ok, ticks} = NodeTable.insert(:ptree, n)
 
 IO.inspect(data)
 IO.inspect(local)
@@ -22,11 +22,11 @@ Enum.map(
   18..28,
   fn i ->
     name = "param" <> Integer.to_string(i)
-    DataTree.insert(:ptree, ~n"data.#{name}")
+    NodeTable.insert(:ptree, ~n"data.#{name}")
   end
 )
 
-DataTree.node(:ptree, ~p"data.param23") |> IO.inspect()
+NodeTable.node(:ptree, ~p"data.param23") |> IO.inspect()
 
 # -----------
 
@@ -61,34 +61,34 @@ TreePath.ends_with?(p, TreePath.append(p, "blah")) |> IO.puts()
 
 IO.puts("-------------------------")
 
-DataTree.insert(:ptree, ~n"data.local.cluster")
-DataTree.insert(:ptree, ~n"data.local.cluster.node0")
-DataTree.insert(:ptree, ~n"data.local.cluster.node0.state")
-DataTree.insert(:ptree, ~n"data.local.cluster.node1")
-DataTree.insert(:ptree, ~n"data.local.cluster.node1.state")
-DataTree.insert(:ptree, ~n"data.local.cluster.mode")
+NodeTable.insert(:ptree, ~n"data.local.cluster")
+NodeTable.insert(:ptree, ~n"data.local.cluster.node0")
+NodeTable.insert(:ptree, ~n"data.local.cluster.node0.state")
+NodeTable.insert(:ptree, ~n"data.local.cluster.node1")
+NodeTable.insert(:ptree, ~n"data.local.cluster.node1.state")
+NodeTable.insert(:ptree, ~n"data.local.cluster.mode")
 
-{:ok, sub} = DataTree.subtree(:ptree, ~p"data.local")
+{:ok, sub} = NodeTable.subtree(:ptree, ~p"data.local")
 sub |> IO.inspect()
 length(sub) |> IO.puts()
 
 IO.puts("-------------------------")
 
-DataTree.delete(:ptree, ~p"data.local.cluster")
+NodeTable.delete(:ptree, ~p"data.local.cluster")
 
-{:ok, sub} = DataTree.subtree(:ptree, ~p"data.local")
+{:ok, sub} = NodeTable.subtree(:ptree, ~p"data.local")
 sub |> IO.inspect()
 length(sub) |> IO.puts()
 
 IO.puts("-------------------------")
 
-{:ok, ticks} = DataTree.node(:ptree, ~p"data.local.ticks")
+{:ok, ticks} = NodeTable.node(:ptree, ~p"data.local.ticks")
 IO.puts("BEFORE UPDATE")
 IO.inspect(ticks)
 
-DataTree.update_value(:ptree, ~p"data.local.ticks", System.system_time())
+NodeTable.update_value(:ptree, ~p"data.local.ticks", System.system_time())
 
-{:ok, ticks} = DataTree.node(:ptree, ~p"data.local.ticks")
+{:ok, ticks} = NodeTable.node(:ptree, ~p"data.local.ticks")
 IO.puts("AFTER UPDATE")
 IO.inspect(ticks)
 
