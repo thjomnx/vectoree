@@ -28,7 +28,7 @@ Enum.map(
   end
 )
 
-DataTree.lookup(:ptree, ~p"data.param23") |> IO.inspect()
+DataTree.node(:ptree, ~p"data.param23") |> IO.inspect()
 
 # -----------
 
@@ -70,6 +70,6 @@ DataTree.insert(:ptree, ~n"data.local.cluster.node1")
 DataTree.insert(:ptree, ~n"data.local.cluster.node1.state")
 DataTree.insert(:ptree, ~n"data.local.cluster.mode")
 
-sub = DataTree.subtree(:ptree, ~p"data.local")
+{:ok, sub} = DataTree.subtree(:ptree, ~p"data.local")
 sub |> IO.inspect()
 length(sub) |> IO.puts()
