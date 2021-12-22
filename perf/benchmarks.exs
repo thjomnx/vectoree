@@ -1,35 +1,37 @@
 import DataTree.{Node, TreePath}
 
-DataTree.new(name: :vt0, visibility: :public)
-DataTree.new(name: :vt1, visibility: :public)
-DataTree.new(name: :vt2, visibility: :public)
-DataTree.new(name: :vt3, visibility: :public)
-DataTree.new(name: :vt4, visibility: :public)
-DataTree.new(name: :vt5, visibility: :public)
+alias DataTree.NodeTable
+
+NodeTable.new(:vt0, :public)
+NodeTable.new(:vt1, :public)
+NodeTable.new(:vt2, :public)
+NodeTable.new(:vt3, :public)
+NodeTable.new(:vt4, :public)
+NodeTable.new(:vt5, :public)
 
 for i <- 1..10, j <- 1..10, k <- 1..20 do
-  DataTree.insert(:vt0, ~n"data.#{i}.#{j}.node_#{k}")
+  NodeTable.insert(:vt0, ~n"data.#{i}.#{j}.node_#{k}")
 end
 
 for i <- 1..10000, k <- 1..20 do
-  DataTree.insert(:vt1, ~n"data.#{i}.node_#{k}")
+  NodeTable.insert(:vt1, ~n"data.#{i}.node_#{k}")
 end
 
 for i <- 1..100, j <- 1..100, k <- 1..20 do
-  DataTree.insert(:vt2, ~n"data.#{i}.#{j}.node_#{k}")
+  NodeTable.insert(:vt2, ~n"data.#{i}.#{j}.node_#{k}")
 end
 
 for i <- 1..10, j <- 1..10, k <- 1..10, l <- 1..10, m <- 1..10, n <- 1..20 do
-  DataTree.insert(:vt3, ~n"data.#{i}.#{j}.#{k}.#{l}.#{m}.node_#{n}")
+  NodeTable.insert(:vt3, ~n"data.#{i}.#{j}.#{k}.#{l}.#{m}.node_#{n}")
 end
 
 for i <- 1..1000, j <- 1..1000, k <- 1..10 do
-  DataTree.insert(:vt4, ~n"data.#{i}.#{j}.node_#{k}")
+  NodeTable.insert(:vt4, ~n"data.#{i}.#{j}.node_#{k}")
 end
 
 Benchee.run(
   %{
-    "update_value" => fn {table, path} -> DataTree.update_value(table, path, 12345) end
+    "update_value" => fn {table, path} -> NodeTable.update_value(table, path, 12345) end
   },
   inputs: %{
     "small" => {:vt0, ~p"data.3.4.node_11"},

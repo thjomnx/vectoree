@@ -12,11 +12,11 @@ defmodule DataTree.NodeTableTest do
   end
 
   test "new" do
-    assert {:ok, :testtree} == NodeTable.new(name: :testtree)
+    assert {:ok, :testtree} == NodeTable.new(:testtree)
   end
 
   test "children" do
-    NodeTable.new(name: :testtree)
+    NodeTable.new(:testtree)
     tp = TreePath.new(["a", "b", "c", "d"])
 
     for i <- 0..9 do
@@ -42,7 +42,7 @@ defmodule DataTree.NodeTableTest do
   end
 
   test "subtree" do
-    NodeTable.new(name: :testtree)
+    NodeTable.new(:testtree)
     tp = TreePath.new(["a", "b", "c", "d"])
 
     for i <- 0..9 do
@@ -68,7 +68,7 @@ defmodule DataTree.NodeTableTest do
   end
 
   test "insert" do
-    NodeTable.new(name: :testtree)
+    NodeTable.new(:testtree)
 
     name = "d"
     parent = TreePath.new(["a", "b", "c"])
@@ -80,7 +80,7 @@ defmodule DataTree.NodeTableTest do
   end
 
   test "delete" do
-    NodeTable.new(name: :testtree)
+    NodeTable.new(:testtree)
 
     name = "d"
     parent = TreePath.new(["a", "b", "c"])

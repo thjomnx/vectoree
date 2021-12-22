@@ -2,7 +2,7 @@ import DataTree.{Node, TreePath}
 
 alias DataTree.NodeTable
 
-NodeTable.new(name: :ptree)
+NodeTable.new(:ptree)
 
 IO.puts("NodeTable.populate")
 

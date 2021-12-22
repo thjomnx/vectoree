@@ -17,10 +17,8 @@ defmodule DataTree.NodeTable do
   @elem_pos_modified @idx_modified + 1
   @elem_pos_children @idx_children + 1
 
-  def new(opts) do
-    table = Keyword.fetch!(opts, :name)
-    visibility = Keyword.get(opts, :visibility, :protected)
-    table_ref = :ets.new(table, [:named_table, visibility])
+  def new(name, access \\ :protected) do
+    table_ref = :ets.new(name, [:named_table, access])
     {:ok, table_ref}
   end
 
