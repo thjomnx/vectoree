@@ -12,7 +12,7 @@ for i <- 1..10,
     n <- 1..10,
     o <- 1..10,
     p <- 1..2 do
-      NodeTable.insert(:vt0, ~n"data.#{i}.#{j}.#{k}.#{l}.#{m}.#{n}.#{o}.node_#{p}")
+  NodeTable.insert(:vt0, ~n"data.#{i}.#{j}.#{k}.#{l}.#{m}.#{n}.#{o}.node_#{p}")
 end
 
 Benchee.run(

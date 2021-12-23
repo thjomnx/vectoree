@@ -20,6 +20,10 @@ defmodule DataTree do
     {:ok, GenServer.call(tree, {:insert, node})}
   end
 
+  def update_value(tree, %TreePath{} = path, value) do
+    GenServer.cast(tree, {:update_value, path, value})
+  end
+
   @impl true
   def init(table_name) do
     NodeTable.new(table_name)
@@ -34,5 +38,11 @@ defmodule DataTree do
   def handle_call({:insert, %Node{} = node}, _from, tree) do
     {:ok, inserted_node} = NodeTable.insert(tree, node)
     {:reply, inserted_node, tree}
+  end
+
+  @impl true
+  def handle_cast({:update_value, %TreePath{} = path, value}, tree) do
+    NodeTable.update_value(tree, path, value)
+    {:noreply, tree}
   end
 end
