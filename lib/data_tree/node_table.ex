@@ -115,12 +115,15 @@ defmodule DataTree.NodeTable do
 
   def delete(table, %TreePath{} = path) do
     unlink_parent_of(table, path)
+    delete_subtree(table, path)
+  end
 
+  defp delete_subtree(table, %TreePath{} = path) do
     case :ets.lookup(table, path) do
       [{_, _, _, _, _, _, children}] ->
         children_paths = for c <- children, do: TreePath.append(path, c)
         :ets.delete(table, path)
-        Enum.each(children_paths, &delete(table, &1))
+        Enum.each(children_paths, &delete_subtree(table, &1))
 
       [] ->
         :ok
