@@ -23,6 +23,9 @@ defmodule DataTree.NodeTableTest do
       NodeTable.insert(:testtree, Node.new(tp, "n#{i}"))
     end
 
+    {:ok, children} = NodeTable.children(:testtree, TreePath.new([]))
+    assert length(children) == 1
+
     {:ok, children} = NodeTable.children(:testtree, TreePath.new(["a"]))
     assert length(children) == 2
 
@@ -48,6 +51,9 @@ defmodule DataTree.NodeTableTest do
     for i <- 0..9 do
       NodeTable.insert(:testtree, Node.new(tp, "n#{i}"))
     end
+
+    {:ok, subtree} = NodeTable.subtree(:testtree, TreePath.new([]))
+    assert length(subtree) == 14
 
     {:ok, subtree} = NodeTable.subtree(:testtree, TreePath.new(["a"]))
     assert length(subtree) == 14

@@ -89,7 +89,11 @@ defmodule DataTree.Node do
 
   def children_paths(%__MODULE__{parent: path, name: name, children: children}) do
     for child <- children do
-      TreePath.append(path, TreePath.wrap([child, name]))
+      if String.length(name) > 0 do
+        TreePath.append(path, TreePath.wrap([child, name]))
+      else
+        TreePath.append(path, TreePath.wrap([child]))
+      end
     end
   end
 end

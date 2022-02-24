@@ -56,8 +56,14 @@ defmodule DataTree.NodeTable do
         acc
 
       limit <= 0 || level < limit ->
-        children = hd(acc) |> Node.children_paths()
-        Enum.reduce(children, acc, &subtree(table, &1, &2, limit, level + 1))
+        node = hd(acc)
+        children = node |> Node.children_paths()
+
+        if String.length(node.name) > 0 do
+          Enum.reduce(children, acc, &subtree(table, &1, &2, limit, level + 1))
+        else
+          Enum.reduce(children, tl(acc), &subtree(table, &1, &2, limit, level + 1))
+        end
     end
   end
 
@@ -78,8 +84,10 @@ defmodule DataTree.NodeTable do
   defp link_parent_of(table, %Node{parent: parent, name: name}) do
     case :ets.lookup(table, parent) do
       [{_, _, _, _, _, _, children}] ->
-        new_children = MapSet.put(children, name)
-        :ets.update_element(table, parent, {@elem_pos_children, new_children})
+        unless String.length(name) == 0 do
+          new_children = MapSet.put(children, name)
+          :ets.update_element(table, parent, {@elem_pos_children, new_children})
+        end
 
       [] ->
         missing_parent = Node.new(parent) |> Node.add_child(name)
