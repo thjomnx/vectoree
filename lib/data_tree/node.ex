@@ -79,6 +79,14 @@ defmodule DataTree.Node do
     TreePath.append(path, name)
   end
 
+  def rebase(%__MODULE__{parent: path} = node, %TreePath{} = base) do
+    %__MODULE__{node | parent: TreePath.append(base, path)}
+  end
+
+  def relocate(%__MODULE__{} = node, %TreePath{} = parent) do
+    %__MODULE__{node | parent: parent}
+  end
+
   def root?(%__MODULE__{parent: path}), do: TreePath.level(path) <= 1
   def leaf?(%__MODULE__{children: children}), do: MapSet.size(children) == 0
 
