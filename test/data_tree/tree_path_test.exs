@@ -1,5 +1,5 @@
 defmodule DataTree.TreePathTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   import DataTree.TreePath
 
@@ -8,6 +8,10 @@ defmodule DataTree.TreePathTest do
   @moduletag :capture_log
 
   doctest TreePath
+
+  setup do
+    {:ok, path: TreePath.new(["a", "b", "c"])}
+  end
 
   test "module exists" do
     assert is_list(TreePath.module_info())
@@ -68,58 +72,46 @@ defmodule DataTree.TreePathTest do
     assert TreePath.level(~p"a.b.c") == 3
   end
 
-  test "root" do
-    p = TreePath.new(["a", "b", "c"])
-
-    assert TreePath.root(p) == TreePath.new("a")
+  test "root", context do
+    assert TreePath.root(context[:path]) == TreePath.new("a")
     assert TreePath.root(~p"") == TreePath.new([])
   end
 
-  test "rootname" do
-    p = TreePath.new(["a", "b", "c"])
-
-    assert TreePath.rootname(p) == "a"
+  test "rootname", context do
+    assert TreePath.rootname(context[:path]) == "a"
     assert TreePath.rootname(~p"") == ""
   end
 
-  test "parent" do
-    p = TreePath.new(["a", "b", "c"])
-
-    assert TreePath.parent(p) == TreePath.new(["a", "b"])
+  test "parent", context do
+    assert TreePath.parent(context[:path]) == TreePath.new(["a", "b"])
     assert TreePath.parent(~p"") == TreePath.new([])
   end
 
-  test "base" do
-    p = TreePath.new(["a", "b", "c"])
-
-    assert TreePath.base(p) == TreePath.new("c")
+  test "base", context do
+    assert TreePath.base(context[:path]) == TreePath.new("c")
     assert TreePath.base(~p"") == TreePath.new([])
   end
 
-  test "basename" do
-    p = TreePath.new(["a", "b", "c"])
-
-    assert TreePath.basename(p) == "c"
+  test "basename", context do
+    assert TreePath.basename(context[:path]) == "c"
     assert TreePath.basename(~p"") == ""
   end
 
-  test "sibling" do
-    p = TreePath.new(["a", "b", "c"])
-
-    assert TreePath.sibling(p, "d") == TreePath.new(["a", "b", "d"])
+  test "sibling", context do
+    assert TreePath.sibling(context[:path], "d") == TreePath.new(["a", "b", "d"])
     assert TreePath.sibling(~p"", "d") == TreePath.new("d")
   end
 
-  test "append" do
-    p = TreePath.new(["a", "b", "c"])
+  test "append", context do
+    p = context[:path]
 
     assert TreePath.append(p, "d") == TreePath.new(["a", "b", "c", "d"])
     assert TreePath.append(p, ~p"d.e") == TreePath.new(["a", "b", "c", "d", "e"])
     assert TreePath.append(~p"", "d") == TreePath.new("d")
   end
 
-  test "starts_with?" do
-    p = TreePath.new(["a", "b", "c"])
+  test "starts_with?", context do
+    p = context[:path]
 
     assert TreePath.starts_with?(p, TreePath.parent(p))
     assert TreePath.starts_with?(p, TreePath.new("a"))
@@ -128,8 +120,8 @@ defmodule DataTree.TreePathTest do
     refute TreePath.starts_with?(p, TreePath.append(p, "x"))
   end
 
-  test "ends_with?" do
-    p = TreePath.new(["a", "b", "c"])
+  test "ends_with?", context do
+    p = context[:path]
 
     refute TreePath.ends_with?(p, TreePath.parent(p))
     refute TreePath.ends_with?(p, TreePath.new("a"))

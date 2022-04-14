@@ -1,9 +1,7 @@
 defmodule DataTree.NodeTest do
   use ExUnit.Case
 
-  import DataTree.{Node, TreePath}
-
-  alias DataTree.{Node, TreePath}
+  alias DataTree.Node
 
   @moduletag :capture_log
 
@@ -13,67 +11,8 @@ defmodule DataTree.NodeTest do
     assert is_list(Node.module_info())
   end
 
-  test "new via abspath" do
-    n = Node.new(~p"")
-    assert n.parent == TreePath.new([])
-    assert n.name == ""
-
-    n = Node.new(~p"a.b.c")
-    assert n.parent == ~p"a.b"
-    assert n.name == "c"
-  end
-
-  test "new via parent and name" do
-    n = Node.new(~p"", "")
-    assert n.parent == TreePath.new([])
-    assert n.name == ""
-
-    n = Node.new(~p"a.b", "c")
-    assert n.parent == ~p"a.b"
-    assert n.name == "c"
-  end
-
-  test "sigil n" do
-    n = ~n""
-    assert n.parent == TreePath.new([])
-    assert n.name == ""
-
-    n = ~n"a.b.c"
-    assert n.parent == ~p"a.b"
-    assert n.name == "c"
-
-    # Test whitespace preservation
-    n = ~n"  a . b  .  c "
-    assert n.parent == ~p"  a . b  "
-    assert n.name == "  c "
-
-    # Test whitespace and dot preservation with variable interpolation
-    x = "  a.b"
-    y = "  c  "
-    z = "d.e  "
-    n = ~n"m.#{x}. #{y}  .#{z}.n"
-    assert n.parent == ~p"m.#{x}. #{y}  .#{z}"
-    assert n.name == "n"
-
-    # Test with atom interpolation (single item)
-    n = ~n"#{:x}"
-    assert n.parent == TreePath.new([])
-    assert n.name == "x"
-
-    # Test with atom interpolation (mixed)
-    n = ~n"abc.def.ghi.j#{:k}lm.nop.q#{:r}#{:s}t.uvw.xyz"
-    assert n.parent == ~p"abc.def.ghi.jklm.nop.qrst.uvw"
-    assert n.name == "xyz"
-
-    # Test with variable interpolation
-    zero = 0
-    kl = "kl"
-    r = "r"
-    s = "s"
-    sz = "ß"
-    n = ~n"#{zero}.abc.def.ghi.j#{kl}m.nop.q#{r}#{s}t.uvw.xyz.#{sz}"
-
-    assert n.parent == ~p"0.abc.def.ghi.jklm.nop.qrst.uvw.xyz"
-    assert n.name == "ß"
+  test "to_string" do
+    node = Node.new(:int64, -12345, :seconds, 128, 1_234_567_890)
+    assert to_string(node) == "-12345 [seconds] (int64/128/1234567890)"
   end
 end
