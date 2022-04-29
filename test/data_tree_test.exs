@@ -46,29 +46,54 @@ defmodule DataTree.DataTreeTest do
     assert n != nil
   end
 
+  test "children", context do
+    tree = context[:tree]
+
+    children = DataTree.children(tree, TreePath.new([]))
+    assert map_size(children) == 1
+
+    children = DataTree.children(tree, TreePath.new(["a"]))
+    assert map_size(children) == 2
+
+    children = DataTree.children(tree, TreePath.new(["a", "b"]))
+    assert map_size(children) == 2
+
+    children = DataTree.children(tree, TreePath.new(["a", "b", "c"]))
+    assert map_size(children) == 2
+
+    children = DataTree.children(tree, TreePath.new(["a", "b", "c", "d"]))
+    assert map_size(children) == 11
+
+    children = DataTree.children(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
+    assert map_size(children) == 1
+
+    children = DataTree.children(tree, TreePath.new(["invalid"]))
+    assert map_size(children) == 0
+  end
+
   test "subtree", context do
     tree = context[:tree]
 
-    sub = DataTree.subtree(tree, TreePath.new([]))
-    assert map_size(sub) == 14
+    subtree = DataTree.subtree(tree, TreePath.new([]))
+    assert map_size(subtree) == 14
 
-    sub = DataTree.subtree(tree, TreePath.new(["a", "b"]))
-    assert map_size(sub) == 13
+    subtree = DataTree.subtree(tree, TreePath.new(["a", "b"]))
+    assert map_size(subtree) == 13
 
-    sub = DataTree.subtree(tree, TreePath.new(["a", "b", "c"]))
-    assert map_size(sub) == 12
+    subtree = DataTree.subtree(tree, TreePath.new(["a", "b", "c"]))
+    assert map_size(subtree) == 12
 
-    sub = DataTree.subtree(tree, TreePath.new(["a", "b", "c", "d"]))
-    assert map_size(sub) == 11
+    subtree = DataTree.subtree(tree, TreePath.new(["a", "b", "c", "d"]))
+    assert map_size(subtree) == 11
 
-    sub = DataTree.subtree(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
-    assert map_size(sub) == 1
+    subtree = DataTree.subtree(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
+    assert map_size(subtree) == 1
 
-    sub = DataTree.subtree(tree, TreePath.new(["invalid"]))
-    assert map_size(sub) == 0
+    subtree = DataTree.subtree(tree, TreePath.new(["invalid"]))
+    assert map_size(subtree) == 0
   end
 
-  test "update_value on subtree", context do
+  test "update_value on subtreetree", context do
     tree = context[:tree]
 
     tree = DataTree.update_value(tree, "foo")

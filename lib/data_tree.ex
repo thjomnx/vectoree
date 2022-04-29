@@ -23,6 +23,14 @@ defmodule DataTree do
     {path, Map.get(tree, path)}
   end
 
+  def children(tree, %TreePath{} = path) do
+    children_level = TreePath.level(path) + 1
+
+    Map.filter(tree, fn {key, _} ->
+      TreePath.starts_with?(key, path) && TreePath.level(key) <= children_level
+    end)
+  end
+
   def subtree(tree, %TreePath{} = path) do
     Map.filter(tree, fn {key, _} -> TreePath.starts_with?(key, path) end)
   end
