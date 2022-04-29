@@ -141,4 +141,34 @@ defmodule DataTree.DataTreeTest do
     {_, n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n.modified == 0
   end
+
+  test "delete", context do
+    tree = context[:tree]
+    path = TreePath.new(["a", "b", "c", "d"])
+
+    tree = DataTree.delete(tree, TreePath.append(path, "n3"))
+
+    {_, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    assert n == nil
+    assert map_size(tree) == 13
+
+    tree = DataTree.delete(tree, path)
+
+    {_, n} = DataTree.node(tree, path)
+    assert n == nil
+    {p, _} = DataTree.node(tree, TreePath.parent(path))
+    assert p == TreePath.parent(path)
+    assert map_size(tree) == 3
+
+    tree = DataTree.delete(tree, TreePath.root(path))
+
+    assert map_size(tree) == 0
+  end
+
+  test "delete with empty path", context do
+    tree = context[:tree]
+
+    tree = DataTree.delete(tree, TreePath.new([]))
+    assert map_size(tree) == 0
+  end
 end
