@@ -57,3 +57,11 @@ IO.inspect(v.modified, label: "Updated single tuple modified")
 {_p, v} = DataTree.node(up, ~p"data.23.42.node_12")
 IO.inspect(v.status, label: "Updated other tuple status")
 IO.inspect(v.modified, label: "Updated other tuple modified")
+
+IO.puts("==> DataTree.delete")
+start = DateTime.utc_now()
+
+del = DataTree.delete(map, ~p"data")
+
+DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.inspect(label: "Time [ms]")
+map_size(del) |> IO.inspect(label: "Size")
