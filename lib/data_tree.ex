@@ -62,8 +62,7 @@ defmodule DataTree do
   end
 
   def delete(tree, %TreePath{} = path) do
-    sub_paths = Map.keys(tree) |> Enum.filter(&TreePath.starts_with?(&1, path))
-    Map.drop(tree, sub_paths)
+    Map.reject(tree, fn {k, _} -> TreePath.starts_with?(k, path) end)
   end
 
   defp system_time() do
