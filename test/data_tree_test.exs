@@ -29,20 +29,15 @@ defmodule DataTree.DataTreeTest do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 
-    {p, n} = DataTree.node(tree, TreePath.new([]))
-    assert p == TreePath.new([])
-    assert n == nil
+    :error = DataTree.node(tree, TreePath.new([]))
 
-    {p, n} = DataTree.node(tree, TreePath.root(path))
-    assert p == TreePath.root(path)
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
     assert n != nil
 
-    {p, n} = DataTree.node(tree, path)
-    assert p == path
+    {:ok, n} = DataTree.node(tree, path)
     assert n != nil
 
-    {p, n} = DataTree.node(tree, TreePath.append(path, "n3"))
-    assert p == TreePath.append(path, "n3")
+    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n != nil
   end
 
@@ -107,13 +102,13 @@ defmodule DataTree.DataTreeTest do
 
     tree = DataTree.update_value(tree, path, "bar")
 
-    {_, n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, n} = DataTree.node(tree, TreePath.root(path))
     assert n.value == nil
 
-    {_, n} = DataTree.node(tree, path)
+    {:ok, n} = DataTree.node(tree, path)
     assert n.value == "bar"
 
-    {_, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n.value == nil
   end
 
@@ -131,13 +126,13 @@ defmodule DataTree.DataTreeTest do
 
     tree = DataTree.update_status(tree, path, 128)
 
-    {_, n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, n} = DataTree.node(tree, TreePath.root(path))
     assert n.status == 0
 
-    {_, n} = DataTree.node(tree, path)
+    {:ok, n} = DataTree.node(tree, path)
     assert n.status == 128
 
-    {_, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n.status == 0
   end
 
@@ -157,13 +152,13 @@ defmodule DataTree.DataTreeTest do
 
     tree = DataTree.update_time_modified(tree, path, time)
 
-    {_, n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, n} = DataTree.node(tree, TreePath.root(path))
     assert n.modified == 0
 
-    {_, n} = DataTree.node(tree, path)
+    {:ok, n} = DataTree.node(tree, path)
     assert n.modified == time
 
-    {_, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n.modified == 0
   end
 
@@ -173,16 +168,12 @@ defmodule DataTree.DataTreeTest do
 
     tree = DataTree.delete(tree, TreePath.append(path, "n3"))
 
-    {_, n} = DataTree.node(tree, TreePath.append(path, "n3"))
-    assert n == nil
+    :error = DataTree.node(tree, TreePath.append(path, "n3"))
     assert map_size(tree) == 13
 
     tree = DataTree.delete(tree, path)
 
-    {_, n} = DataTree.node(tree, path)
-    assert n == nil
-    {p, _} = DataTree.node(tree, TreePath.parent(path))
-    assert p == TreePath.parent(path)
+    :error = DataTree.node(tree, path)
     assert map_size(tree) == 3
 
     tree = DataTree.delete(tree, TreePath.root(path))

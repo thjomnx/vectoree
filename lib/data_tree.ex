@@ -20,7 +20,7 @@ defmodule DataTree do
   end
 
   def node(tree, %TreePath{} = path) do
-    {path, Map.get(tree, path)}
+    Map.fetch(tree, path)
   end
 
   def children(tree, %TreePath{} = path) do

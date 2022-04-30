@@ -28,7 +28,7 @@ map_size(map) |> IO.inspect(label: "Size")
 IO.puts("==> DataTree.node")
 start = DateTime.utc_now()
 
-DataTree.node(map, ~p"data.23.42.node_11") |> IO.inspect(label: "PathNode tuple")
+DataTree.node(map, ~p"data.23.42.node_11") |> IO.inspect()
 
 DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.inspect(label: "Time [ms]")
 
