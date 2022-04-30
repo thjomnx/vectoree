@@ -1,48 +1,79 @@
 defmodule DataTree do
-  use GenServer
+  alias DataTree.{Node, TreePath}
 
-  alias DataTree.{NodeTable, Node, TreePath}
+  def normalize(tree) do
+    Map.keys(tree) |> Enum.reduce(tree, &normalize(&2, &1))
+  end
 
-  def start_link(opts) do
-    name = Keyword.fetch!(opts, :name)
-    GenServer.start_link(__MODULE__, name, name: name)
+  def normalize(tree, %TreePath{} = path) do
+    tree = Map.put_new_lazy(tree, path, &Node.new/0)
+    parent = TreePath.parent(path)
+
+    case TreePath.level(parent) do
+      0 -> tree
+      _ -> normalize(tree, parent)
+    end
+  end
+
+  def size(tree) do
+    map_size(tree)
   end
 
   def node(tree, %TreePath{} = path) do
-    NodeTable.node(tree, path)
+    Map.fetch(tree, path)
+  end
+
+  def children(tree, %TreePath{} = path) do
+    children_level = TreePath.level(path) + 1
+
+    Map.filter(tree, fn {key, _} ->
+      TreePath.starts_with?(key, path) && TreePath.level(key) <= children_level
+    end)
   end
 
   def subtree(tree, %TreePath{} = path) do
-    GenServer.call(tree, {:subtree, path})
+    Map.filter(tree, fn {key, _} -> TreePath.starts_with?(key, path) end)
   end
 
-  def insert(tree, %Node{} = node) do
-    {:ok, GenServer.call(tree, {:insert, node})}
+  def update_value(tree, value) when is_map(tree) do
+    timestamp = system_time()
+    update(tree, fn {k, v} -> {k, %Node{v | value: value, modified: timestamp}} end)
   end
 
-  def update_value(tree, %TreePath{} = path, value) do
-    GenServer.cast(tree, {:update_value, path, value})
+  def update_value(tree, %TreePath{} = path, value) when is_map(tree) do
+    update(tree, path, fn v -> %Node{v | value: value, modified: system_time()} end)
   end
 
-  @impl true
-  def init(table_name) do
-    NodeTable.new(table_name)
+  def update_status(tree, status) when is_map(tree) do
+    timestamp = system_time()
+    update(tree, fn {k, v} -> {k, %Node{v | status: status, modified: timestamp}} end)
   end
 
-  @impl true
-  def handle_call({:subtree, %TreePath{} = path}, _from, tree) do
-    {:reply, NodeTable.subtree(tree, path), tree}
+  def update_status(tree, %TreePath{} = path, status) when is_map(tree) do
+    update(tree, path, fn v -> %Node{v | status: status, modified: system_time()} end)
   end
 
-  @impl true
-  def handle_call({:insert, %Node{} = node}, _from, tree) do
-    {:ok, inserted_node} = NodeTable.insert(tree, node)
-    {:reply, inserted_node, tree}
+  def update_time_modified(tree, modified) when is_map(tree) do
+    update(tree, fn {k, v} -> {k, %Node{v | modified: modified}} end)
   end
 
-  @impl true
-  def handle_cast({:update_value, %TreePath{} = path, value}, tree) do
-    NodeTable.update_value(tree, path, value)
-    {:noreply, tree}
+  def update_time_modified(tree, %TreePath{} = path, modified) when is_map(tree) do
+    update(tree, path, fn v -> %Node{v | modified: modified} end)
+  end
+
+  defp update(tree, fun) do
+    tree |> Enum.into(%{}, fun)
+  end
+
+  defp update(tree, %TreePath{} = path, fun) do
+    Map.update(tree, path, &Node.new/0, fun)
+  end
+
+  def delete(tree, %TreePath{} = path) do
+    Map.reject(tree, fn {k, _} -> TreePath.starts_with?(k, path) end)
+  end
+
+  defp system_time() do
+    System.system_time()
   end
 end
