@@ -34,10 +34,10 @@ defmodule DataTree.DataTreeTest do
     {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
     assert n != nil
 
-    {:ok, n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = DataTree.node(tree, path)
     assert n != nil
 
-    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n != nil
   end
 
@@ -102,13 +102,13 @@ defmodule DataTree.DataTreeTest do
 
     tree = DataTree.update_value(tree, path, "bar")
 
-    {:ok, n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
     assert n.value == nil
 
-    {:ok, n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = DataTree.node(tree, path)
     assert n.value == "bar"
 
-    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n.value == nil
   end
 
@@ -126,13 +126,13 @@ defmodule DataTree.DataTreeTest do
 
     tree = DataTree.update_status(tree, path, 128)
 
-    {:ok, n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
     assert n.status == 0
 
-    {:ok, n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = DataTree.node(tree, path)
     assert n.status == 128
 
-    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n.status == 0
   end
 
@@ -152,13 +152,13 @@ defmodule DataTree.DataTreeTest do
 
     tree = DataTree.update_time_modified(tree, path, time)
 
-    {:ok, n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
     assert n.modified == 0
 
-    {:ok, n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = DataTree.node(tree, path)
     assert n.modified == time
 
-    {:ok, n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
     assert n.modified == 0
   end
 
