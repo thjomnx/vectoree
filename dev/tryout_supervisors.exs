@@ -38,4 +38,7 @@ DynamicSupervisor.count_children(TreeProcessorSupervisor) |> IO.inspect(label: "
 DynamicSupervisor.count_children(TreeSinkSupervisor) |> IO.inspect(label: "sinks")
 
 Registry.select(TreeSourceRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3", :"$2"}}]}])
+|> Enum.map(fn {parent_pid, mount_path, mount_pid} ->
+  {parent_pid, to_string(mount_path), mount_pid}
+end)
 |> IO.inspect()
