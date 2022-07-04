@@ -4,10 +4,10 @@ defmodule SubtreeSource do
   require Logger
   alias DataTree.Node
 
-  def start_link(init_fun) do
+  def start_link(init_arg) do
     Logger.info("Starting SubtreeSource")
 
-    GenServer.start_link(__MODULE__, init_fun)
+    GenServer.start_link(__MODULE__, init_arg)
   end
 
   @impl true
