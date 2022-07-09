@@ -5,13 +5,13 @@ defmodule SubtreeSource do
   alias DataTree.Node
 
   def start_link(init_arg) do
-    Logger.info("Starting SubtreeSource")
-
     GenServer.start_link(__MODULE__, init_arg)
   end
 
   @impl true
   def init(init_arg) do
+    Logger.info("Starting SubtreeSource")
+
     {:mount, parent_pid, mount_path} =
       cond do
         is_function(init_arg) -> init_arg.()

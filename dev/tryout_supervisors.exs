@@ -1,25 +1,25 @@
 import DataTree.TreePath
 
-{:ok, tree_sup_pid} = TreeSupervisor.start_link()
+TreeSupervisor.start_link()
 
 DynamicSupervisor.start_child(
   TreeSourceSupervisor,
-  {SubtreeSource, fn -> TreeSupervisor.mount_tuple(TreeSupervisor, ~p"data.local.src1") end}
+  {SubtreeSource, fn -> TreeServer.mount_tuple(TreeServer, ~p"data.local.src1") end}
 )
 
 DynamicSupervisor.start_child(
   TreeSourceSupervisor,
-  {SubtreeSource, fn -> TreeSupervisor.mount_tuple(tree_sup_pid, ~p"data.local.src2") end}
+  {SubtreeSource, fn -> TreeServer.mount_tuple(TreeServer, ~p"data.local.src2") end}
 )
 
 DynamicSupervisor.start_child(
   TreeSourceSupervisor,
-  {SubtreeSource, TreeSupervisor.mount_tuple(TreeSupervisor, ~p"data.local.src3")}
+  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src3")}
 )
 
 DynamicSupervisor.start_child(
   TreeSourceSupervisor,
-  {SubtreeSource, TreeSupervisor.mount_tuple(tree_sup_pid, ~p"data.local.src4")}
+  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src4")}
 )
 
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
@@ -42,3 +42,5 @@ Registry.select(TreeSourceRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3"
   {parent_pid, to_string(mount_path), mount_pid}
 end)
 |> IO.inspect()
+
+TreeServer.query(TreeServer, ~p"data") |> IO.inspect()

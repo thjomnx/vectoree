@@ -3,8 +3,6 @@ defmodule TreeSupervisor do
   require Logger
 
   def start_link(_opts \\ []) do
-    Logger.info("Starting TreeSupervisor")
-
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
@@ -18,6 +16,8 @@ defmodule TreeSupervisor do
 
   @impl true
   def init(_init_arg) do
+    Logger.info("Starting TreeSupervisor")
+
     children = [
       {Registry, keys: :duplicate, name: TreeSourceRegistry},
       {Registry, keys: :duplicate, name: TreeSinkRegistry},
