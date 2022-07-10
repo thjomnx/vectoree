@@ -18,7 +18,7 @@ defmodule TreeServer do
   end
 
   def mount_tuple(pid, %TreePath{} = path) when is_pid(pid) do
-    {ppid, _, _} = find_parent(pid, path)
+    {_, _, ppid} = find_parent(pid, path)
     {:mount, ppid, path}
   end
 
@@ -27,8 +27,8 @@ defmodule TreeServer do
 
     TreeSourceRegistry
     |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3", :"$2"}}]}])
-    |> Stream.filter(fn {_, mpath, _} -> TreePath.starts_with?(mpath, parent_path) end)
-    |> Enum.max_by(fn {_, mpath, _} -> TreePath.level(mpath) end, fn -> {pid, nil, nil} end)
+    |> Stream.filter(fn {_, mpath, _} -> TreePath.starts_with?(parent_path, mpath) end)
+    |> Enum.max_by(fn {_, mpath, _} -> TreePath.level(mpath) end, fn -> {nil, nil, pid} end)
   end
 
   @impl true

@@ -22,6 +22,16 @@ DynamicSupervisor.start_child(
   {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src4")}
 )
 
+DynamicSupervisor.start_child(
+  TreeSourceSupervisor,
+  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src3.src3a")}
+)
+
+DynamicSupervisor.start_child(
+  TreeSourceSupervisor,
+  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src3.src3a.other.data")}
+)
+
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
