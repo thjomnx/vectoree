@@ -53,4 +53,8 @@ Registry.select(TreeSourceRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3"
 end)
 |> IO.inspect()
 
-TreeServer.query(TreeServer, ~p"data") |> IO.inspect()
+# TreeServer.query(TreeServer, ~p"data") # |> IO.inspect()
+TreeServer.query(TreeServer, ~p"data.local.src3.src3a")
+|> Enum.map(fn {k, v} -> {to_string(k), to_string(v)} end)
+|> Enum.into(Map.new())
+|> IO.inspect()

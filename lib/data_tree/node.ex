@@ -8,9 +8,9 @@ defmodule DataTree.Node do
   ]
 
   def new(
-        type \\ nil,
-        value \\ nil,
-        unit \\ nil,
+        type \\ :none,
+        value \\ :empty,
+        unit \\ :none,
         status \\ 0,
         modified \\ 0
       ) do

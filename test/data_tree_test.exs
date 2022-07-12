@@ -103,13 +103,13 @@ defmodule DataTree.DataTreeTest do
     tree = DataTree.update_value(tree, path, "bar")
 
     {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
-    assert n.value == nil
+    assert n.value == :empty
 
     {:ok, %Node{} = n} = DataTree.node(tree, path)
     assert n.value == "bar"
 
     {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
-    assert n.value == nil
+    assert n.value == :empty
   end
 
   test "update_status on subtree", context do

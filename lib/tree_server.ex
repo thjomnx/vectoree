@@ -48,11 +48,17 @@ defmodule TreeServer do
     sources_to_query =
       TreeSourceRegistry
       |> Registry.select([
-        {{:"$1", :"$2", :"$3"}, [{:"=:=", :"$1", self()}], [{{:"$1", :"$3", :"$2"}}]}
+        {{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3", :"$2"}}]}
       ])
-      |> Stream.filter(fn {_, mpath, _} -> TreePath.starts_with?(mpath, path) end)
-      |> Enum.map(fn {ppid, mpath, mpid} -> {ppid, to_string(mpath), mpid} end)
+      |> Enum.filter(fn {_, mpath, _} -> TreePath.starts_with?(mpath, path) end)
 
-    {:reply, sources_to_query, state}
+    merged =
+      sources_to_query
+      |> Task.async_stream(fn {_, mpath, mpid} -> SubtreeSource.query(mpid, mpath) end)
+      |> Enum.to_list()
+      |> Enum.map(fn {:ok, mtree} -> mtree end)
+      |> Enum.reduce(state, fn mtree, acc -> Map.merge(acc, mtree) end)
+
+    {:reply, merged, state}
   end
 end
