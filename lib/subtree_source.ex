@@ -26,7 +26,7 @@ defmodule SubtreeSource do
 
     tree =
       for i <- 1..2, into: %{} do
-        {~p"sub.node_#{i}", Node.new(:int32, System.system_time(), :nanoseconds)}
+        {~p"sub.node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
     state = DataTree.normalize(tree)
