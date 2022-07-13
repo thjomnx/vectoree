@@ -35,8 +35,8 @@ defmodule SubtreeSource do
 
   @impl true
   def handle_call({:query, path}, _from, state) do
-    rebased = Map.new(state, fn {k, v} -> {TreePath.append(path, k), v} end)
+    transformer = fn {local_path, node} -> {TreePath.append(path, local_path), node} end
 
-    {:reply, rebased, state}
+    {:reply, Map.new(state, transformer), state}
   end
 end
