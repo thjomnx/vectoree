@@ -54,11 +54,9 @@ end)
 |> IO.inspect()
 
 TreeServer.query(TreeServer, ~p"data")
-|> Enum.map(fn {k, v} -> {to_string(k), to_string(v)} end)
-|> Enum.into(Map.new())
+|> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
 |> IO.inspect()
 
 TreeServer.query(TreeServer, ~p"data.local.src3.src3a")
-|> Enum.map(fn {k, v} -> {to_string(k), to_string(v)} end)
-|> Enum.into(Map.new())
+|> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
 |> IO.inspect()
