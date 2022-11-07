@@ -62,7 +62,7 @@ defmodule DataTree do
   end
 
   defp update(tree, fun) do
-    tree |> Enum.into(%{}, fun)
+    Map.new(tree, fun)
   end
 
   defp update(tree, %TreePath{} = path, fun) do

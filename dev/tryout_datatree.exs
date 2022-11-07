@@ -7,7 +7,7 @@ start = DateTime.utc_now()
 
 map =
   for i <- 1..100, j <- 1..100, k <- 1..200, into: %{} do
-    {~p"data.#{i}.#{j}.node_#{k}", Node.new(:int32, System.system_time(), :nanoseconds)}
+    {~p"data.#{i}.#{j}.node_#{k}", Node.new(:int32, System.system_time(), :nanosecond)}
   end
 
 DateTime.utc_now() |> DateTime.diff(start, :millisecond) |> IO.inspect(label: "Time [ms]")
