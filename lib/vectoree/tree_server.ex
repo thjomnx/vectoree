@@ -1,4 +1,4 @@
-defmodule TreeServer do
+defmodule Vectoree.TreeServer do
   use GenServer
   import Vectoree.TreePath
   require Logger

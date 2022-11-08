@@ -1,4 +1,4 @@
-defmodule TreeSinkSupervisor do
+defmodule Vectoree.TreeSinkSupervisor do
   use DynamicSupervisor
   require Logger
 

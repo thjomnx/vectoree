@@ -1,4 +1,4 @@
-defmodule TreeSourceSupervisor do
+defmodule Vectoree.TreeSourceSupervisor do
   use DynamicSupervisor
   require Logger
 

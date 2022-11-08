@@ -1,6 +1,7 @@
-defmodule TreeSupervisor do
+defmodule Vectoree.TreeSupervisor do
   use Supervisor
   require Logger
+  alias Vectoree.{TreeServer, TreeSourceSupervisor, TreeProcessorSupervisor, TreeSinkSupervisor}
 
   def start_link(_opts \\ []) do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
