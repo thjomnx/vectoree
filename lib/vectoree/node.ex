@@ -1,4 +1,4 @@
-defmodule DataTree.Node do
+defmodule Vectoree.Node do
   defstruct [
     :type,
     :value,
@@ -23,8 +23,8 @@ defmodule DataTree.Node do
     }
   end
 
-  defimpl String.Chars, for: DataTree.Node do
-    def to_string(%DataTree.Node{type: t, value: v, unit: u, status: s, modified: m}) do
+  defimpl String.Chars, for: Vectoree.Node do
+    def to_string(%Vectoree.Node{type: t, value: v, unit: u, status: s, modified: m}) do
       "#{v} [#{u}] (#{t}/#{s}/#{m})"
     end
   end

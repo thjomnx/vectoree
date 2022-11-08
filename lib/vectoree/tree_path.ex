@@ -1,4 +1,4 @@
-defmodule DataTree.TreePath do
+defmodule Vectoree.TreePath do
   @moduledoc """
   A canonical path implementation for tree structures.
 
@@ -33,28 +33,28 @@ defmodule DataTree.TreePath do
 
   By passing a singular segment:
 
-      iex> DataTree.TreePath.new("data")
-      %DataTree.TreePath{segments: ["data"]}
+      iex> Vectoree.TreePath.new("data")
+      %Vectoree.TreePath{segments: ["data"]}
 
-      iex> DataTree.TreePath.new("  da ta  ")
-      %DataTree.TreePath{segments: ["  da ta  "]}
+      iex> Vectoree.TreePath.new("  da ta  ")
+      %Vectoree.TreePath{segments: ["  da ta  "]}
 
-      iex> DataTree.TreePath.new("  ")
-      %DataTree.TreePath{segments: ["  "]}
+      iex> Vectoree.TreePath.new("  ")
+      %Vectoree.TreePath{segments: ["  "]}
 
-      iex> DataTree.TreePath.new("")
-      %DataTree.TreePath{segments: []}
+      iex> Vectoree.TreePath.new("")
+      %Vectoree.TreePath{segments: []}
 
   By passing a list of segments:
 
-      iex> DataTree.TreePath.new([])
-      %DataTree.TreePath{segments: []}
+      iex> Vectoree.TreePath.new([])
+      %Vectoree.TreePath{segments: []}
 
-      iex> DataTree.TreePath.new(["data"])
-      %DataTree.TreePath{segments: ["data"]}
+      iex> Vectoree.TreePath.new(["data"])
+      %Vectoree.TreePath{segments: ["data"]}
 
-      iex> DataTree.TreePath.new(["  data  ", "lo  re", "b4"])
-      %DataTree.TreePath{segments: ["b4", "lo  re", "  data  "]}
+      iex> Vectoree.TreePath.new(["  data  ", "lo  re", "b4"])
+      %Vectoree.TreePath{segments: ["b4", "lo  re", "  data  "]}
   """
   @spec new(segment) :: t when segment: String.t()
   def new(segment) when is_binary(segment) do
@@ -84,8 +84,8 @@ defmodule DataTree.TreePath do
 
   Here wrapping a path named "data.lore.b4":
 
-      iex> DataTree.TreePath.wrap(["b4", "lore", "data"])
-      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+      iex> Vectoree.TreePath.wrap(["b4", "lore", "data"])
+      %Vectoree.TreePath{segments: ["b4", "lore", "data"]}
   """
   @spec wrap(segments) :: t when segments: list()
   def wrap(segments) when is_list(segments) do
@@ -98,20 +98,20 @@ defmodule DataTree.TreePath do
   ## Examples
 
       iex> ~p""
-      %DataTree.TreePath{segments: []}
+      %Vectoree.TreePath{segments: []}
 
       iex> ~p"data.lore.b4"
-      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+      %Vectoree.TreePath{segments: ["b4", "lore", "data"]}
 
       iex> x = "or"
       iex> ~p"da#{:t}a.l#{x}e.b4"
-      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+      %Vectoree.TreePath{segments: ["b4", "lore", "data"]}
   """
   defmacro sigil_p({:<<>>, _line, [term]}, []) when is_binary(term) do
     reversed = transpose_segments(term)
 
     quote do
-      DataTree.TreePath.wrap(unquote(reversed))
+      Vectoree.TreePath.wrap(unquote(reversed))
     end
   end
 
@@ -119,7 +119,7 @@ defmodule DataTree.TreePath do
     reversed = transpose_segments(terms)
 
     quote do
-      DataTree.TreePath.wrap(unquote(reversed))
+      Vectoree.TreePath.wrap(unquote(reversed))
     end
   end
 
@@ -201,14 +201,14 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.root(~p"")
-      %DataTree.TreePath{segments: []}
+      iex> Vectoree.TreePath.root(~p"")
+      %Vectoree.TreePath{segments: []}
 
-      iex> DataTree.TreePath.root(~p"data")
-      %DataTree.TreePath{segments: ["data"]}
+      iex> Vectoree.TreePath.root(~p"data")
+      %Vectoree.TreePath{segments: ["data"]}
 
-      iex> DataTree.TreePath.root(~p"data.lore.b4")
-      %DataTree.TreePath{segments: ["data"]}
+      iex> Vectoree.TreePath.root(~p"data.lore.b4")
+      %Vectoree.TreePath{segments: ["data"]}
   """
   @spec root(t) :: t
   def root(%__MODULE__{} = path) do
@@ -220,13 +220,13 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.rootname(~p"")
+      iex> Vectoree.TreePath.rootname(~p"")
       ""
 
-      iex> DataTree.TreePath.rootname(~p"data")
+      iex> Vectoree.TreePath.rootname(~p"data")
       "data"
 
-      iex> DataTree.TreePath.rootname(~p"data.lore.b4")
+      iex> Vectoree.TreePath.rootname(~p"data.lore.b4")
       "data"
   """
   @spec rootname(t) :: String.t()
@@ -242,14 +242,14 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.parent(~p"")
-      %DataTree.TreePath{segments: []}
+      iex> Vectoree.TreePath.parent(~p"")
+      %Vectoree.TreePath{segments: []}
 
-      iex> DataTree.TreePath.parent(~p"data")
-      %DataTree.TreePath{segments: []}
+      iex> Vectoree.TreePath.parent(~p"data")
+      %Vectoree.TreePath{segments: []}
 
-      iex> DataTree.TreePath.parent(~p"data.lore.b4")
-      %DataTree.TreePath{segments: ["lore", "data"]}
+      iex> Vectoree.TreePath.parent(~p"data.lore.b4")
+      %Vectoree.TreePath{segments: ["lore", "data"]}
   """
   @spec parent(t) :: t
   def parent(%__MODULE__{segments: segments} = path) do
@@ -264,14 +264,14 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.base(~p"")
-      %DataTree.TreePath{segments: []}
+      iex> Vectoree.TreePath.base(~p"")
+      %Vectoree.TreePath{segments: []}
 
-      iex> DataTree.TreePath.base(~p"data")
-      %DataTree.TreePath{segments: ["data"]}
+      iex> Vectoree.TreePath.base(~p"data")
+      %Vectoree.TreePath{segments: ["data"]}
 
-      iex> DataTree.TreePath.base(~p"data.lore.b4")
-      %DataTree.TreePath{segments: ["b4"]}
+      iex> Vectoree.TreePath.base(~p"data.lore.b4")
+      %Vectoree.TreePath{segments: ["b4"]}
   """
   @spec base(t) :: t
   def base(%__MODULE__{segments: segments} = path) do
@@ -286,13 +286,13 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.basename(~p"")
+      iex> Vectoree.TreePath.basename(~p"")
       ""
 
-      iex> DataTree.TreePath.basename(~p"data")
+      iex> Vectoree.TreePath.basename(~p"data")
       "data"
 
-      iex> DataTree.TreePath.basename(~p"data.lore.b4")
+      iex> Vectoree.TreePath.basename(~p"data.lore.b4")
       "b4"
   """
   @spec basename(t) :: String.t()
@@ -308,11 +308,11 @@ defmodule DataTree.TreePath do
 
   # Examples
 
-      iex> DataTree.TreePath.sibling(~p"data.lore", "b4")
-      %DataTree.TreePath{segments: ["b4", "data"]}
+      iex> Vectoree.TreePath.sibling(~p"data.lore", "b4")
+      %Vectoree.TreePath{segments: ["b4", "data"]}
 
-      iex> DataTree.TreePath.sibling(~p"", "b4")
-      %DataTree.TreePath{segments: ["b4"]}
+      iex> Vectoree.TreePath.sibling(~p"", "b4")
+      %Vectoree.TreePath{segments: ["b4"]}
   """
   @spec sibling(t, String.t()) :: t
   def sibling(%__MODULE__{} = path, segment) when is_binary(segment) do
@@ -327,14 +327,14 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.append(~p"", "data")
-      %DataTree.TreePath{segments: ["data"]}
+      iex> Vectoree.TreePath.append(~p"", "data")
+      %Vectoree.TreePath{segments: ["data"]}
 
-      iex> DataTree.TreePath.append(~p"data.lore", "b4")
-      %DataTree.TreePath{segments: ["b4", "lore", "data"]}
+      iex> Vectoree.TreePath.append(~p"data.lore", "b4")
+      %Vectoree.TreePath{segments: ["b4", "lore", "data"]}
 
-      iex> DataTree.TreePath.append(~p"data.lore", ~p"b4.soong")
-      %DataTree.TreePath{segments: ["soong", "b4", "lore", "data"]}
+      iex> Vectoree.TreePath.append(~p"data.lore", ~p"b4.soong")
+      %Vectoree.TreePath{segments: ["soong", "b4", "lore", "data"]}
   """
   @spec append(t, String.t()) :: t
   def append(%__MODULE__{segments: segments} = path, segment) when is_binary(segment) do
@@ -354,13 +354,13 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.starts_with?(~p"data.lore.b4", "data")
+      iex> Vectoree.TreePath.starts_with?(~p"data.lore.b4", "data")
       true
 
-      iex> DataTree.TreePath.starts_with?(~p"data.lore.b4", "lore")
+      iex> Vectoree.TreePath.starts_with?(~p"data.lore.b4", "lore")
       false
 
-      iex> DataTree.TreePath.starts_with?(~p"data.lore.b4", ~p"data.lore")
+      iex> Vectoree.TreePath.starts_with?(~p"data.lore.b4", ~p"data.lore")
       true
   """
   @spec starts_with?(t, String.t() | t) :: boolean()
@@ -378,13 +378,13 @@ defmodule DataTree.TreePath do
 
   ## Examples
 
-      iex> DataTree.TreePath.ends_with?(~p"data.lore.b4", "b4")
+      iex> Vectoree.TreePath.ends_with?(~p"data.lore.b4", "b4")
       true
 
-      iex> DataTree.TreePath.ends_with?(~p"data.lore.b4", "lore")
+      iex> Vectoree.TreePath.ends_with?(~p"data.lore.b4", "lore")
       false
 
-      iex> DataTree.TreePath.ends_with?(~p"data.lore.b4", ~p"lore.b4")
+      iex> Vectoree.TreePath.ends_with?(~p"data.lore.b4", ~p"lore.b4")
       true
   """
   @spec ends_with?(t, String.t() | t) :: boolean()
@@ -397,15 +397,15 @@ defmodule DataTree.TreePath do
     end
   end
 
-  defimpl String.Chars, for: DataTree.TreePath do
+  defimpl String.Chars, for: Vectoree.TreePath do
     def to_string(path) do
-      sep = DataTree.TreePath.separator()
-      repl = DataTree.TreePath.separator_replacement()
+      sep = Vectoree.TreePath.separator()
+      repl = Vectoree.TreePath.separator_replacement()
 
       path.segments
       |> Enum.reverse()
       |> Enum.map(&String.replace(&1, sep, repl))
-      |> Enum.join(DataTree.TreePath.separator())
+      |> Enum.join(Vectoree.TreePath.separator())
     end
   end
 end
