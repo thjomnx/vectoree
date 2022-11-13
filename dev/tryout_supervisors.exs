@@ -1,6 +1,6 @@
 import Vectoree.TreePath
 
-alias Vectoree.{TreeSupervisor, TreeSourceSupervisor, TreeProcessorSupervisor, TreeSinkSupervisor, TreeServer}
+alias Vectoree.{TreeSupervisor, TreeServer}
 
 TreeSupervisor.start_link()
 
