@@ -1,64 +1,53 @@
 import Vectoree.TreePath
 
-alias Vectoree.{TreeSupervisor, TreeServer}
+alias Vectoree.TreeServer
 
-TreeSupervisor.start_link()
+{:ok, server_pid} = TreeServer.start_link()
 
-DynamicSupervisor.start_child(
-  TreeSourceSupervisor,
-  {SubtreeSource, fn -> TreeServer.mount_tuple(TreeServer, ~p"data.local.src1") end}
-)
-
-DynamicSupervisor.start_child(
-  TreeSourceSupervisor,
-  {SubtreeSource, fn -> TreeServer.mount_tuple(TreeServer, ~p"data.local.src2") end}
-)
-
-DynamicSupervisor.start_child(
-  TreeSourceSupervisor,
-  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src3")}
-)
-
-DynamicSupervisor.start_child(
-  TreeSourceSupervisor,
-  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src4")}
-)
-
-DynamicSupervisor.start_child(
-  TreeSourceSupervisor,
-  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src3.src3a")}
-)
-
-DynamicSupervisor.start_child(
-  TreeSourceSupervisor,
-  {SubtreeSource, TreeServer.mount_tuple(TreeServer, ~p"data.local.src3.src3a.other.data")}
-)
+{:ok, src1} = TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src1")
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src2")
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3")
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src4")
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a")
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a.other.data")
 
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
 DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
 
-DynamicSupervisor.start_child(TreeSinkSupervisor, {Agent, fn -> [] end})
-DynamicSupervisor.start_child(TreeSinkSupervisor, {Agent, fn -> [] end})
+TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data")
+TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data.local.src1")
+TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data.local.src3")
 
 # ---
 
-Supervisor.count_children(TreeSupervisor) |> IO.inspect(label: "tree")
 DynamicSupervisor.count_children(TreeSourceSupervisor) |> IO.inspect(label: "sources")
 DynamicSupervisor.count_children(TreeProcessorSupervisor) |> IO.inspect(label: "processors")
 DynamicSupervisor.count_children(TreeSinkSupervisor) |> IO.inspect(label: "sinks")
 
-Registry.select(TreeSourceRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3", :"$2"}}]}])
-|> Enum.map(fn {parent_pid, mount_path, mount_pid} ->
-  {parent_pid, to_string(mount_path), mount_pid}
+Registry.select(TreeSourceRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2"}}]}])
+|> Enum.map(fn {mount_path, pid} ->
+  {pid, to_string(mount_path)}
 end)
-|> IO.inspect()
+|> IO.inspect(label: "TreeSourceRegistry")
 
-TreeServer.query(TreeServer, ~p"data")
-|> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
-|> IO.inspect()
+Registry.select(TreeSinkRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2"}}]}])
+|> Enum.map(fn {listen_path, pid} ->
+  {pid, to_string(listen_path)}
+end)
+|> IO.inspect(label: "TreeSinkRegistry")
 
-TreeServer.query(TreeServer, ~p"data.local.src3.src3a")
+# ---
+
+TreeServer.query(server_pid, ~p"data")
 |> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
-|> IO.inspect()
+|> IO.inspect(label: "query on 'data'")
+
+TreeServer.query(server_pid, ~p"data.local.src3.src3a")
+|> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
+|> IO.inspect(label: "query on 'data.local.src3.src3a'")
+
+SubtreeSource.query(src1, ~p"data") |> IO.inspect(label: "before update")
+:ok = SubtreeSource.sim_update(src1)
+SubtreeSource.query(src1, ~p"data") |> IO.inspect(label: "after update")

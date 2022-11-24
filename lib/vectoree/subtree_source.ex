@@ -12,9 +12,13 @@ defmodule SubtreeSource do
     GenServer.call(server, {:query, path})
   end
 
+  def sim_update(server) do
+    GenServer.call(server, {:sim_update})
+  end
+
   @impl true
   def init(init_arg) do
-    {:mount, parent_pid, mount_path} =
+    {:mount, mount_path} =
       cond do
         is_function(init_arg) -> init_arg.()
         true -> init_arg
@@ -22,7 +26,7 @@ defmodule SubtreeSource do
 
     Logger.info("Starting SubtreeSource on path #{mount_path}")
 
-    Registry.register(TreeSourceRegistry, parent_pid, mount_path)
+    Registry.register(TreeSourceRegistry, mount_path, nil)
 
     tree =
       for i <- 1..2, into: %{} do
@@ -38,5 +42,18 @@ defmodule SubtreeSource do
     transformer = fn {local_path, node} -> {TreePath.append(path, local_path), node} end
 
     {:reply, Map.new(state, transformer), state}
+  end
+
+  @impl true
+  def handle_call({:sim_update}, _from, state) do
+    new_state =
+      state
+      |> Enum.filter(fn {_, node} -> node.value != :empty end)
+      |> Enum.map(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
+      |> Enum.into(%{})
+
+    # Registry.dispatch(TreeSourceRegistry, )
+
+    {:reply, :ok, Tree.normalize(new_state)}
   end
 end
