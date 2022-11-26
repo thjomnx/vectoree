@@ -12,10 +12,6 @@ defmodule SubtreeSource do
     GenServer.call(server, {:query, path})
   end
 
-  def sim_update(server) do
-    GenServer.call(server, {:sim_update})
-  end
-
   @impl true
   def init(init_arg) do
     {:mount, mount_path} =
@@ -26,15 +22,36 @@ defmodule SubtreeSource do
 
     Logger.info("Starting SubtreeSource on path #{mount_path}")
 
-    Registry.register(TreeSourceRegistry, mount_path, nil)
+    Registry.register(TreeSourceRegistry, :source, mount_path)
 
     tree =
       for i <- 1..2, into: %{} do
         {~p"sub.node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
-    state = Tree.normalize(tree)
-    {:ok, state}
+    Process.send_after(self(), :update, 1000)
+
+    {:ok, Tree.normalize(tree)}
+  end
+
+  @impl true
+  def handle_info(:update, state) do
+    new_state =
+      state
+      |> Enum.filter(fn {_, node} -> node.value != :empty end)
+      |> Enum.map(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
+      |> Enum.into(%{})
+
+    root = ~p"data"
+
+    TreeSinkRegistry
+    |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+    |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(lpath, root) end)
+    |> Enum.each(fn {pid, _} -> SubtreeSink.notify(pid, state) end)
+
+    Process.send_after(self(), :update, 1000)
+
+    {:noreply, Tree.normalize(new_state)}
   end
 
   @impl true
@@ -42,18 +59,5 @@ defmodule SubtreeSource do
     transformer = fn {local_path, node} -> {TreePath.append(path, local_path), node} end
 
     {:reply, Map.new(state, transformer), state}
-  end
-
-  @impl true
-  def handle_call({:sim_update}, _from, state) do
-    new_state =
-      state
-      |> Enum.filter(fn {_, node} -> node.value != :empty end)
-      |> Enum.map(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
-      |> Enum.into(%{})
-
-    # Registry.dispatch(TreeSourceRegistry, )
-
-    {:reply, :ok, Tree.normalize(new_state)}
   end
 end

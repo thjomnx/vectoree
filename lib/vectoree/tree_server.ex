@@ -34,8 +34,8 @@ defmodule Vectoree.TreeServer do
     Logger.info("Starting TreeServer")
 
     children = [
-      {Registry, keys: :unique, name: TreeSourceRegistry},
-      {Registry, keys: :unique, name: TreeSinkRegistry},
+      {Registry, keys: :duplicate, name: TreeSourceRegistry},
+      {Registry, keys: :duplicate, name: TreeSinkRegistry},
       {DynamicSupervisor, name: TreeSourceSupervisor},
       {DynamicSupervisor, name: TreeProcessorSupervisor},
       {DynamicSupervisor, name: TreeSinkSupervisor}
@@ -68,9 +68,9 @@ defmodule Vectoree.TreeServer do
   def handle_call({:query, path}, _from, %{tree: tree} = state) do
     merged_tree =
       TreeSourceRegistry
-      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2"}}]}])
-      |> Stream.filter(fn {mpath, _} -> TreePath.starts_with?(mpath, path) end)
-      |> Task.async_stream(fn {mpath, mpid} -> SubtreeSource.query(mpid, mpath) end)
+      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+      |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
+      |> Task.async_stream(fn {mpid, mpath} -> SubtreeSource.query(mpid, mpath) end)
       |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
 
     {:reply, merged_tree, state}
