@@ -8,16 +8,24 @@ defmodule Vectoree.TreeServer do
     GenServer.start_link(__MODULE__, [], opts)
   end
 
-  def start_child_source(server, module, %TreePath{} = path) do
-    GenServer.call(server, {:add_source, module, path})
+  def start_child_source(server, module, %TreePath{} = mount_path) do
+    GenServer.call(server, {:add_source, module, mount_path})
   end
 
-  def start_child_sink(server, module, %TreePath{} = path) do
-    GenServer.call(server, {:add_sink, module, path})
+  def start_child_processor(server, module, %TreePath{} = mount_path, %TreePath{} = listen_path) do
+    GenServer.call(server, {:add_processor, module, mount_path, listen_path})
+  end
+
+  def start_child_sink(server, module, %TreePath{} = listen_path) do
+    GenServer.call(server, {:add_sink, module, listen_path})
   end
 
   def query(server, %TreePath{} = path) do
     GenServer.call(server, {:query, path})
+  end
+
+  def notify(server, data) do
+    GenServer.cast(server, {:notify, data})
   end
 
   def mount_tuple(name, %TreePath{} = path) when is_atom(name) do
@@ -51,15 +59,26 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def handle_call({:add_source, module, path}, _from, state) do
-    result = DynamicSupervisor.start_child(TreeSourceSupervisor, {module, {:mount, path}})
+  def handle_call({:add_source, module, mount_path}, _from, state) do
+    result = DynamicSupervisor.start_child(TreeSourceSupervisor, {module, {:mount, mount_path}})
 
     {:reply, result, state}
   end
 
   @impl true
-  def handle_call({:add_sink, module, path}, _from, state) do
-    result = DynamicSupervisor.start_child(TreeSinkSupervisor, {module, path})
+  def handle_call({:add_processor, module, mount_path, listen_path}, _from, state) do
+    result =
+      DynamicSupervisor.start_child(
+        TreeProcessorSupervisor,
+        {module, %{:mount => mount_path, :listen => listen_path}}
+      )
+
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_call({:add_sink, module, listen_path}, _from, state) do
+    result = DynamicSupervisor.start_child(TreeSinkSupervisor, {module, listen_path})
 
     {:reply, result, state}
   end

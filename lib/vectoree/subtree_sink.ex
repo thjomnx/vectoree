@@ -6,10 +6,6 @@ defmodule SubtreeSink do
     GenServer.start_link(__MODULE__, init_arg)
   end
 
-  def notify(server, data) do
-    GenServer.cast(server, {:notify, data})
-  end
-
   @impl true
   def init(init_arg) do
     listen_path = init_arg
@@ -22,8 +18,12 @@ defmodule SubtreeSink do
   end
 
   @impl true
-  def handle_cast({:notify, _data}, state) do
-    Logger.info("Notification received")
+  def handle_cast({:notify, data}, state) do
+    Logger.info("Notification received at SubtreeSink")
+
+    data
+    |> Enum.map(fn {k, v} -> "#{k} => #{v}" end)
+    |> Enum.each(&IO.inspect(&1, label: "arrived at sink"))
 
     {:noreply, state}
   end

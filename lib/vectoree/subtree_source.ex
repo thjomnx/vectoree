@@ -2,6 +2,7 @@ defmodule SubtreeSource do
   use GenServer
   import Vectoree.TreePath
   require Logger
+  alias Vectoree.TreeServer
   alias Vectoree.{Node, Tree, TreePath}
 
   def start_link(init_arg) do
@@ -26,10 +27,10 @@ defmodule SubtreeSource do
 
     tree =
       for i <- 1..2, into: %{} do
-        {~p"sub.node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
+        {~p"src.node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
-    Process.send_after(self(), :update, 1000)
+    Process.send_after(self(), :update, 5000)
 
     {:ok, Tree.normalize(tree)}
   end
@@ -47,9 +48,9 @@ defmodule SubtreeSource do
     TreeSinkRegistry
     |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
     |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(lpath, root) end)
-    |> Enum.each(fn {pid, _} -> SubtreeSink.notify(pid, state) end)
+    |> Enum.each(fn {pid, _} -> TreeServer.notify(pid, state) end)
 
-    Process.send_after(self(), :update, 1000)
+    Process.send_after(self(), :update, 5000)
 
     {:noreply, Tree.normalize(new_state)}
   end

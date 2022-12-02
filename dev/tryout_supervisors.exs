@@ -4,17 +4,33 @@ alias Vectoree.TreeServer
 
 {:ok, server_pid} = TreeServer.start_link()
 
-{:ok, src1} = TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src1")
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src1")
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src2")
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3")
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src4")
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a")
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a.other.data")
 
-DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
-DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
-DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
-DynamicSupervisor.start_child(TreeProcessorSupervisor, {Agent, fn -> %{} end})
+TreeServer.start_child_processor(
+  server_pid,
+  SubtreeProcessor,
+  ~p"data.local.proc1",
+  ~p"data.local.src1"
+)
+
+TreeServer.start_child_processor(
+  server_pid,
+  SubtreeProcessor,
+  ~p"data.local.proc2",
+  ~p"data.local.src2"
+)
+
+TreeServer.start_child_processor(
+  server_pid,
+  SubtreeProcessor,
+  ~p"data.local.proc4",
+  ~p"data.local.src4"
+)
 
 TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data")
 TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data")
@@ -49,4 +65,4 @@ TreeServer.query(server_pid, ~p"data.local.src3.src3a")
 |> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
 |> IO.inspect(label: "query on 'data.local.src3.src3a'")
 
-Process.sleep(1500)
+Process.sleep(12500)
