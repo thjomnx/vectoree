@@ -43,11 +43,11 @@ defmodule SubtreeProcessor do
   end
 
   @impl true
-  def handle_cast({:notify, data}, state) do
+  def handle_cast({:notify, mount_path, tree}, state) do
     Logger.info("Notification received at SubtreeProcessor")
 
-    data
-    |> Enum.map(fn {k, v} -> "#{k} => #{v}" end)
+    tree
+    |> Enum.map(fn {k, v} -> "#{TreePath.append(mount_path, k)} => #{v}" end)
     |> Enum.each(&IO.inspect(&1, label: "arrived at processor"))
 
     {:noreply, state}

@@ -24,8 +24,8 @@ defmodule Vectoree.TreeServer do
     GenServer.call(server, {:query, path})
   end
 
-  def notify(server, data) do
-    GenServer.cast(server, {:notify, data})
+  def notify(server, %TreePath{} = path, tree) when is_map(tree) do
+    GenServer.cast(server, {:notify, path, tree})
   end
 
   def mount_tuple(name, %TreePath{} = path) when is_atom(name) do
