@@ -35,7 +35,7 @@ defmodule SubtreeSource do
 
     tree =
       for i <- 1..2, into: %{} do
-        {~p"src.node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
+        {~p"node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
     Process.send_after(self(), :update, 5000)

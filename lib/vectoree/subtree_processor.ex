@@ -29,7 +29,7 @@ defmodule SubtreeProcessor do
 
     tree =
       for i <- 1..2, into: %{} do
-        {~p"proc.node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
+        {~p"node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
     {:ok, Tree.normalize(tree)}

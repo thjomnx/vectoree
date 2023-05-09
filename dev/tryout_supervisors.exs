@@ -65,4 +65,4 @@ TreeServer.query(server_pid, ~p"data.local.src3.src3a")
 |> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
 |> IO.inspect(label: "query on 'data.local.src3.src3a'")
 
-Process.sleep(12500)
+Process.sleep(:infinity)

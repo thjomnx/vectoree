@@ -51,34 +51,50 @@ defmodule Vectoree.TreeServer do
 
     {:ok, supervisor_pid} = Supervisor.start_link(children, strategy: :one_for_one)
 
-    tree = %{
-      ~p"data.local" => Node.new()
-    }
-
-    {:ok, %{supervisor: supervisor_pid, tree: Tree.normalize(tree)}}
+    {:ok, %{supervisor: supervisor_pid, tree: Map.new()}}
   end
 
   @impl true
-  def handle_call({:add_source, module, mount_path}, _from, state) do
-    result = DynamicSupervisor.start_child(TreeSourceSupervisor, {module, {:mount, mount_path}})
+  def handle_call({:add_source, module, mount_path}, _from, %{tree: tree} = state) do
+    result =
+      DynamicSupervisor.start_child(
+        TreeSourceSupervisor,
+        {module, {:mount, mount_path}}
+      )
 
-    {:reply, result, state}
+    case result do
+      {:ok, _} ->
+        {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+
+      _ ->
+        {:reply, result, state}
+    end
   end
 
   @impl true
-  def handle_call({:add_processor, module, mount_path, listen_path}, _from, state) do
+  def handle_call({:add_processor, module, mount_path, listen_path}, _from, %{tree: tree} = state) do
     result =
       DynamicSupervisor.start_child(
         TreeProcessorSupervisor,
         {module, %{:mount => mount_path, :listen => listen_path}}
       )
 
-    {:reply, result, state}
+    case result do
+      {:ok, _} ->
+        {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+
+      _ ->
+        {:reply, result, state}
+    end
   end
 
   @impl true
   def handle_call({:add_sink, module, listen_path}, _from, state) do
-    result = DynamicSupervisor.start_child(TreeSinkSupervisor, {module, listen_path})
+    result =
+      DynamicSupervisor.start_child(
+        TreeSinkSupervisor,
+        {module, listen_path}
+      )
 
     {:reply, result, state}
   end
