@@ -1,2 +1,2 @@
-alias DataTree.{Node, TreePath}
-import DataTree.TreePath
+alias Vectoree.{Node, TreePath}
+import Vectoree.TreePath

@@ -1,8 +1,8 @@
-import DataTree.TreePath
+import Vectoree.TreePath
 
-alias DataTree.Node
+alias Vectoree.{Node, Tree}
 
-IO.puts("==> DataTree.GenServer.chunked_call")
+IO.puts("==> Vectoree.GenServer.chunked_call")
 
 defmodule StreamServer do
   use GenServer
@@ -42,7 +42,7 @@ defmodule StreamServer do
         {~p"data.#{i}.#{j}.node_#{k}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
-    state = DataTree.normalize(tree)
+    state = Tree.normalize(tree)
     map_size(state) |> IO.inspect(label: "Number of nodes")
 
     {:ok, state}

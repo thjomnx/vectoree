@@ -1,8 +1,8 @@
-defmodule TreeServer do
+defmodule Vectoree.TreeServer do
   use GenServer
-  import DataTree.TreePath
+  import Vectoree.TreePath
   require Logger
-  alias DataTree.{Node, TreePath}
+  alias Vectoree.{Node, Tree, TreePath}
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, [], opts)
@@ -39,7 +39,7 @@ defmodule TreeServer do
       ~p"data.local" => Node.new()
     }
 
-    state = DataTree.normalize(tree)
+    state = Tree.normalize(tree)
     {:ok, state}
   end
 

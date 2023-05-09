@@ -1,7 +1,7 @@
-defmodule DataTree.NodeTest do
+defmodule Vectoree.NodeTest do
   use ExUnit.Case
 
-  alias DataTree.Node
+  alias Vectoree.Node
 
   @moduletag :capture_log
 

@@ -1,8 +1,8 @@
 defmodule SubtreeSource do
   use GenServer
-  import DataTree.TreePath
+  import Vectoree.TreePath
   require Logger
-  alias DataTree.{Node, TreePath}
+  alias Vectoree.{Node, Tree, TreePath}
 
   def start_link(init_arg) do
     GenServer.start_link(__MODULE__, init_arg)
@@ -29,7 +29,7 @@ defmodule SubtreeSource do
         {~p"sub.node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
-    state = DataTree.normalize(tree)
+    state = Tree.normalize(tree)
     {:ok, state}
   end
 

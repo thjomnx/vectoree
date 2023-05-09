@@ -1,5 +1,5 @@
-defmodule DataTree do
-  alias DataTree.{Node, TreePath}
+defmodule Vectoree.Tree do
+  alias Vectoree.{Node, TreePath}
 
   def normalize(tree) do
     Map.keys(tree) |> Enum.reduce(tree, &normalize(&2, &1))

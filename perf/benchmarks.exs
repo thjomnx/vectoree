@@ -1,6 +1,6 @@
-import DataTree.TreePath
+import Vectoree.TreePath
 
-alias DataTree.Node
+alias Vectoree.{Node, Tree}
 
 tree_small =
   for i <- 1..10, j <- 1..10, k <- 1..20, into: %{} do
@@ -19,7 +19,7 @@ tree_large =
 
 Benchee.run(
   %{
-    "update_value" => fn {tree, path} -> DataTree.update_value(tree, path, 12345) end
+    "update_value" => fn {tree, path} -> Tree.update_value(tree, path, 12345) end
   },
   inputs: %{
     "small" => {tree_small, ~p"data.3.4.node_11"},

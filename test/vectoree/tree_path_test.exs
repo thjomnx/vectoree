@@ -1,9 +1,9 @@
-defmodule DataTree.TreePathTest do
+defmodule Vectoree.TreePathTest do
   use ExUnit.Case, async: true
 
-  import DataTree.TreePath
+  import Vectoree.TreePath
 
-  alias DataTree.TreePath
+  alias Vectoree.TreePath
 
   @moduletag :capture_log
 

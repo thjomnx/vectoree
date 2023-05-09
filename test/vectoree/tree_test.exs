@@ -1,23 +1,23 @@
-defmodule DataTree.DataTreeTest do
+defmodule Vectoree.TreeTest do
   use ExUnit.Case, async: true
 
-  alias DataTree.{Node, TreePath}
+  alias Vectoree.{Node, Tree, TreePath}
 
   @moduletag :capture_log
 
-  doctest DataTree
+  doctest Tree
 
   setup do
     path = TreePath.new(["a", "b", "c", "d"])
 
     nodes = for i <- 0..9, into: %{}, do: {TreePath.append(path, "n#{i}"), Node.new()}
-    tree = DataTree.normalize(nodes)
+    tree = Tree.normalize(nodes)
 
     {:ok, nodes: nodes, tree: tree}
   end
 
   test "module exists" do
-    assert is_list(DataTree.module_info())
+    assert is_list(Tree.module_info())
   end
 
   test "size", context do
@@ -29,69 +29,69 @@ defmodule DataTree.DataTreeTest do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 
-    :error = DataTree.node(tree, TreePath.new([]))
+    :error = Tree.node(tree, TreePath.new([]))
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
     assert n != nil
 
-    {:ok, %Node{} = n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = Tree.node(tree, path)
     assert n != nil
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
     assert n != nil
   end
 
   test "children", context do
     tree = context[:tree]
 
-    children = DataTree.children(tree, TreePath.new([]))
+    children = Tree.children(tree, TreePath.new([]))
     assert map_size(children) == 1
 
-    children = DataTree.children(tree, TreePath.new(["a"]))
+    children = Tree.children(tree, TreePath.new(["a"]))
     assert map_size(children) == 2
 
-    children = DataTree.children(tree, TreePath.new(["a", "b"]))
+    children = Tree.children(tree, TreePath.new(["a", "b"]))
     assert map_size(children) == 2
 
-    children = DataTree.children(tree, TreePath.new(["a", "b", "c"]))
+    children = Tree.children(tree, TreePath.new(["a", "b", "c"]))
     assert map_size(children) == 2
 
-    children = DataTree.children(tree, TreePath.new(["a", "b", "c", "d"]))
+    children = Tree.children(tree, TreePath.new(["a", "b", "c", "d"]))
     assert map_size(children) == 11
 
-    children = DataTree.children(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
+    children = Tree.children(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
     assert map_size(children) == 1
 
-    children = DataTree.children(tree, TreePath.new(["invalid"]))
+    children = Tree.children(tree, TreePath.new(["invalid"]))
     assert map_size(children) == 0
   end
 
   test "subtree", context do
     tree = context[:tree]
 
-    subtree = DataTree.subtree(tree, TreePath.new([]))
+    subtree = Tree.subtree(tree, TreePath.new([]))
     assert map_size(subtree) == 14
 
-    subtree = DataTree.subtree(tree, TreePath.new(["a", "b"]))
+    subtree = Tree.subtree(tree, TreePath.new(["a", "b"]))
     assert map_size(subtree) == 13
 
-    subtree = DataTree.subtree(tree, TreePath.new(["a", "b", "c"]))
+    subtree = Tree.subtree(tree, TreePath.new(["a", "b", "c"]))
     assert map_size(subtree) == 12
 
-    subtree = DataTree.subtree(tree, TreePath.new(["a", "b", "c", "d"]))
+    subtree = Tree.subtree(tree, TreePath.new(["a", "b", "c", "d"]))
     assert map_size(subtree) == 11
 
-    subtree = DataTree.subtree(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
+    subtree = Tree.subtree(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
     assert map_size(subtree) == 1
 
-    subtree = DataTree.subtree(tree, TreePath.new(["invalid"]))
+    subtree = Tree.subtree(tree, TreePath.new(["invalid"]))
     assert map_size(subtree) == 0
   end
 
   test "update_value on subtreetree", context do
     tree = context[:tree]
 
-    tree = DataTree.update_value(tree, "foo")
+    tree = Tree.update_value(tree, "foo")
 
     Map.values(tree) |> Enum.each(fn node -> assert node.value == "foo" end)
   end
@@ -100,22 +100,22 @@ defmodule DataTree.DataTreeTest do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 
-    tree = DataTree.update_value(tree, path, "bar")
+    tree = Tree.update_value(tree, path, "bar")
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
     assert n.value == :empty
 
-    {:ok, %Node{} = n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = Tree.node(tree, path)
     assert n.value == "bar"
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
     assert n.value == :empty
   end
 
   test "update_status on subtree", context do
     tree = context[:tree]
 
-    tree = DataTree.update_status(tree, 128)
+    tree = Tree.update_status(tree, 128)
 
     Map.values(tree) |> Enum.each(fn node -> assert node.status == 128 end)
   end
@@ -124,15 +124,15 @@ defmodule DataTree.DataTreeTest do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 
-    tree = DataTree.update_status(tree, path, 128)
+    tree = Tree.update_status(tree, path, 128)
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
     assert n.status == 0
 
-    {:ok, %Node{} = n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = Tree.node(tree, path)
     assert n.status == 128
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
     assert n.status == 0
   end
 
@@ -140,7 +140,7 @@ defmodule DataTree.DataTreeTest do
     tree = context[:tree]
     time = System.system_time()
 
-    tree = DataTree.update_time_modified(tree, time)
+    tree = Tree.update_time_modified(tree, time)
 
     Map.values(tree) |> Enum.each(fn node -> assert node.modified == time end)
   end
@@ -150,15 +150,15 @@ defmodule DataTree.DataTreeTest do
     path = TreePath.new(["a", "b", "c", "d"])
     time = System.system_time()
 
-    tree = DataTree.update_time_modified(tree, path, time)
+    tree = Tree.update_time_modified(tree, path, time)
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.root(path))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
     assert n.modified == 0
 
-    {:ok, %Node{} = n} = DataTree.node(tree, path)
+    {:ok, %Node{} = n} = Tree.node(tree, path)
     assert n.modified == time
 
-    {:ok, %Node{} = n} = DataTree.node(tree, TreePath.append(path, "n3"))
+    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
     assert n.modified == 0
   end
 
@@ -166,17 +166,17 @@ defmodule DataTree.DataTreeTest do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 
-    tree = DataTree.delete(tree, TreePath.append(path, "n3"))
+    tree = Tree.delete(tree, TreePath.append(path, "n3"))
 
-    :error = DataTree.node(tree, TreePath.append(path, "n3"))
+    :error = Tree.node(tree, TreePath.append(path, "n3"))
     assert map_size(tree) == 13
 
-    tree = DataTree.delete(tree, path)
+    tree = Tree.delete(tree, path)
 
-    :error = DataTree.node(tree, path)
+    :error = Tree.node(tree, path)
     assert map_size(tree) == 3
 
-    tree = DataTree.delete(tree, TreePath.root(path))
+    tree = Tree.delete(tree, TreePath.root(path))
 
     assert map_size(tree) == 0
   end
@@ -184,7 +184,7 @@ defmodule DataTree.DataTreeTest do
   test "delete with empty path", context do
     tree = context[:tree]
 
-    tree = DataTree.delete(tree, TreePath.new([]))
+    tree = Tree.delete(tree, TreePath.new([]))
     assert map_size(tree) == 0
   end
 end
