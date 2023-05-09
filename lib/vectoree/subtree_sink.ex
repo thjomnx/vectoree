@@ -13,7 +13,7 @@ defmodule SubtreeSink do
 
     Logger.info("Starting SubtreeSink on path #{listen_path}")
 
-    Registry.register(TreeSinkRegistry, :sink, listen_path)
+    TreeServer.register_sink(listen_path)
 
     {:ok, []}
   end
