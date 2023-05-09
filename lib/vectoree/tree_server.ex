@@ -1,8 +1,7 @@
 defmodule Vectoree.TreeServer do
   use GenServer
-  import Vectoree.TreePath
   require Logger
-  alias Vectoree.{Node, Tree, TreePath}
+  alias Vectoree.{Tree, TreePath}
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, [], opts)
@@ -26,15 +25,6 @@ defmodule Vectoree.TreeServer do
 
   def notify(server, %TreePath{} = path, tree) when is_map(tree) do
     GenServer.cast(server, {:notify, path, tree})
-  end
-
-  def mount_tuple(name, %TreePath{} = path) when is_atom(name) do
-    pid = Process.whereis(name)
-    mount_tuple(pid, path)
-  end
-
-  def mount_tuple(pid, %TreePath{} = path) when is_pid(pid) do
-    {:mount, path}
   end
 
   @impl true
