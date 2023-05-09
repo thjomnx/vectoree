@@ -46,35 +46,43 @@ defmodule Vectoree.TreeServer do
 
   @impl true
   def handle_call({:add_source, module, mount_path}, _from, %{tree: tree} = state) do
-    result =
-      DynamicSupervisor.start_child(
-        TreeSourceSupervisor,
-        {module, {:mount, mount_path}}
-      )
+    unless mount_conflict?(mount_path) do
+      result =
+        DynamicSupervisor.start_child(
+          TreeSourceSupervisor,
+          {module, {:mount, mount_path}}
+        )
 
-    case result do
-      {:ok, _} ->
-        {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+      case result do
+        {:ok, _} ->
+          {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
 
-      _ ->
-        {:reply, result, state}
+        _ ->
+          {:reply, result, state}
+      end
+    else
+      {:reply, :error, state}
     end
   end
 
   @impl true
   def handle_call({:add_processor, module, mount_path, listen_path}, _from, %{tree: tree} = state) do
-    result =
-      DynamicSupervisor.start_child(
-        TreeProcessorSupervisor,
-        {module, %{:mount => mount_path, :listen => listen_path}}
-      )
+    unless mount_conflict?(mount_path) do
+      result =
+        DynamicSupervisor.start_child(
+          TreeProcessorSupervisor,
+          {module, %{:mount => mount_path, :listen => listen_path}}
+        )
 
-    case result do
-      {:ok, _} ->
-        {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+      case result do
+        {:ok, _} ->
+          {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
 
-      _ ->
-        {:reply, result, state}
+        _ ->
+          {:reply, result, state}
+      end
+    else
+      {:reply, :error, state}
     end
   end
 
@@ -99,5 +107,11 @@ defmodule Vectoree.TreeServer do
       |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
 
     {:reply, merged_tree, state}
+  end
+
+  defp mount_conflict?(path) do
+    TreeSourceRegistry
+      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+      |> Enum.any?(fn {_, mpath} -> TreePath.starts_with?(path, mpath) end)
   end
 end

@@ -2,11 +2,26 @@ import Vectoree.TreePath
 
 alias Vectoree.TreeServer
 
+defmodule Assert do
+  def started(result) do
+    case result do
+      {:ok, pid} -> {:ok, pid}
+      {:error, msg} -> raise("Not started (#{msg})")
+      _ -> raise("Not started")
+    end
+  end
+end
+
 {:ok, server_pid} = TreeServer.start_link()
 
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.src1")
+|> Assert.started()
+
 TreeServer.start_child_processor(server_pid, SubtreeProcessor, ~p"data.proc1", ~p"data.src1")
+|> Assert.started()
+
 TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data")
+|> Assert.started()
 
 # ---
 

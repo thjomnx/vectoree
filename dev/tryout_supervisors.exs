@@ -2,14 +2,27 @@ import Vectoree.TreePath
 
 alias Vectoree.TreeServer
 
+defmodule Assert do
+  def started(result) do
+    case result do
+      {:ok, pid} -> {:ok, pid}
+      _ -> raise("Not started")
+    end
+  end
+end
+
 {:ok, server_pid} = TreeServer.start_link()
 
-TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src1")
-TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src2")
-TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3")
-TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src4")
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src1") |> Assert.started()
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src2") |> Assert.started()
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3") |> Assert.started()
+TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src4") |> Assert.started()
+
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a")
+|> Assert.started()
+
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a.other.data")
+|> Assert.started()
 
 TreeServer.start_child_processor(
   server_pid,
@@ -17,6 +30,7 @@ TreeServer.start_child_processor(
   ~p"data.local.proc1",
   ~p"data.local.src1"
 )
+|> Assert.started()
 
 TreeServer.start_child_processor(
   server_pid,
@@ -24,6 +38,7 @@ TreeServer.start_child_processor(
   ~p"data.local.proc2",
   ~p"data.local.src2"
 )
+|> Assert.started()
 
 TreeServer.start_child_processor(
   server_pid,
@@ -31,11 +46,12 @@ TreeServer.start_child_processor(
   ~p"data.local.proc4",
   ~p"data.local.src4"
 )
+|> Assert.started()
 
-TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data")
-TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data")
-TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data.local.src1")
-TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data.local.src3")
+TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data") |> Assert.started()
+TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data") |> Assert.started()
+TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data.local.src1") |> Assert.started()
+TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data.local.src3") |> Assert.started()
 
 # ---
 
