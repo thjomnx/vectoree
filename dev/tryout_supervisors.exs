@@ -18,12 +18,6 @@ TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src2") |>
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3") |> Assert.started()
 TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src4") |> Assert.started()
 
-TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a")
-|> Assert.started()
-
-TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.local.src3.src3a.other.data")
-|> Assert.started()
-
 TreeServer.start_child_processor(
   server_pid,
   SubtreeProcessor,

@@ -13,14 +13,6 @@ defmodule SubtreeSource do
     GenServer.call(server, {:query, path})
   end
 
-  defp mount(registry, %TreePath{} = path) do
-    Registry.register(registry, :source, path)
-  end
-
-  defp get_mount_path(registry) do
-    Registry.values(registry, :source, self()) |> hd()
-  end
-
   @impl true
   def init(init_arg) do
     {:mount, mount_path} =
@@ -31,7 +23,7 @@ defmodule SubtreeSource do
 
     Logger.info("Starting SubtreeSource on path #{mount_path}")
 
-    mount(TreeSourceRegistry, mount_path)
+    TreeServer.mount_source(mount_path)
 
     tree =
       for i <- 1..2, into: %{} do

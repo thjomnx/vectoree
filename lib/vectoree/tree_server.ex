@@ -19,6 +19,14 @@ defmodule Vectoree.TreeServer do
     GenServer.call(server, {:add_sink, module, listen_path})
   end
 
+  def mount_source(%TreePath{} = path) do
+    Registry.register(TreeSourceRegistry, :source, path)
+  end
+
+  def register_sink(%TreePath{} = path) do
+    Registry.register(TreeSinkRegistry, :sink, path)
+  end
+
   def query(server, %TreePath{} = path) do
     GenServer.call(server, {:query, path})
   end
@@ -111,7 +119,7 @@ defmodule Vectoree.TreeServer do
 
   defp mount_conflict?(path) do
     TreeSourceRegistry
-      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
-      |> Enum.any?(fn {_, mpath} -> TreePath.starts_with?(path, mpath) end)
+    |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+    |> Enum.any?(fn {_, mpath} -> TreePath.starts_with?(path, mpath) end)
   end
 end
