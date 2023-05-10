@@ -1,4 +1,4 @@
-defmodule SubtreeSource do
+defmodule Vectoree.TreeSource do
   use GenServer
   import Vectoree.TreePath
   require Logger
@@ -21,7 +21,7 @@ defmodule SubtreeSource do
         true -> init_arg
       end
 
-    Logger.info("Starting SubtreeSource on path #{mount_path}")
+    Logger.info("Starting #{__MODULE__} on '#{mount_path}'")
 
     TreeServer.mount_source(mount_path)
 
@@ -30,7 +30,7 @@ defmodule SubtreeSource do
         {~p"node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
       end
 
-    Process.send_after(self(), :update, 5000)
+    Process.send_after(self(), :update, 2500)
 
     {:ok, {mount_path, Tree.normalize(tree)}}
   end
@@ -39,9 +39,8 @@ defmodule SubtreeSource do
   def handle_info(:update, {mount_path, tree}) do
     new_tree =
       tree
-      |> Enum.filter(fn {_, node} -> node.value != :empty end)
-      |> Enum.map(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
-      |> Enum.into(%{})
+      |> Stream.filter(fn {_, node} -> node.value != :empty end)
+      |> Map.new(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
 
     root = ~p"data"
 

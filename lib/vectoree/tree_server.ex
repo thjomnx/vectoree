@@ -1,6 +1,7 @@
 defmodule Vectoree.TreeServer do
   use GenServer
   require Logger
+  alias Vectoree.TreeSource
   alias Vectoree.{Tree, TreePath}
 
   def start_link(opts \\ []) do
@@ -37,7 +38,7 @@ defmodule Vectoree.TreeServer do
 
   @impl true
   def init(_opts) do
-    Logger.info("Starting TreeServer")
+    Logger.info("Starting #{__MODULE__}")
 
     children = [
       {Registry, keys: :duplicate, name: TreeSourceRegistry},
@@ -111,7 +112,7 @@ defmodule Vectoree.TreeServer do
       TreeSourceRegistry
       |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
       |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
-      |> Task.async_stream(fn {mpid, mpath} -> SubtreeSource.query(mpid, mpath) end)
+      |> Task.async_stream(fn {mpid, mpath} -> TreeSource.query(mpid, mpath) end)
       |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
 
     {:reply, merged_tree, state}

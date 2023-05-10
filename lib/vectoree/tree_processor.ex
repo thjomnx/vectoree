@@ -1,7 +1,8 @@
-defmodule SubtreeProcessor do
+defmodule Vectoree.TreeProcessor do
   use GenServer
   import Vectoree.TreePath
   require Logger
+  alias Vectoree.TreeServer
   alias Vectoree.{Node, Tree, TreePath}
 
   def start_link(init_arg) do
@@ -21,11 +22,11 @@ defmodule SubtreeProcessor do
       end
 
     Logger.info(
-      "Starting SubtreeProcessor mounted on path #{mount_path}, listening on path #{listen_path}"
+      "Starting #{__MODULE__} mounted on '#{mount_path}', listening on '#{listen_path}'"
     )
 
-    Registry.register(TreeSourceRegistry, :source, mount_path)
-    Registry.register(TreeSinkRegistry, :sink, listen_path)
+    TreeServer.mount_source(mount_path)
+    TreeServer.register_sink(listen_path)
 
     tree =
       for i <- 1..2, into: %{} do
@@ -44,11 +45,11 @@ defmodule SubtreeProcessor do
 
   @impl true
   def handle_cast({:notify, mount_path, tree}, state) do
-    Logger.info("Notification received at SubtreeProcessor")
+    Logger.info("Notification received at #{__MODULE__}")
 
     tree
     |> Enum.map(fn {k, v} -> "#{TreePath.append(mount_path, k)} => #{v}" end)
-    |> Enum.each(&IO.inspect(&1, label: "arrived at processor"))
+    |> Enum.each(&IO.inspect(&1, label: " -proc->"))
 
     {:noreply, state}
   end

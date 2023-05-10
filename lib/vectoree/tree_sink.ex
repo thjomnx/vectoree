@@ -1,6 +1,7 @@
-defmodule SubtreeSink do
+defmodule Vectoree.TreeSink do
   use GenServer
   require Logger
+  alias Vectoree.TreeServer
   alias Vectoree.TreePath
 
   def start_link(init_arg) do
@@ -11,7 +12,7 @@ defmodule SubtreeSink do
   def init(init_arg) do
     listen_path = init_arg
 
-    Logger.info("Starting SubtreeSink on path #{listen_path}")
+    Logger.info("Starting #{__MODULE__} on '#{listen_path}'")
 
     TreeServer.register_sink(listen_path)
 
@@ -20,11 +21,11 @@ defmodule SubtreeSink do
 
   @impl true
   def handle_cast({:notify, mount_path, tree}, state) do
-    Logger.info("Notification received at SubtreeSink")
+    Logger.info("Notification received at #{__MODULE__}")
 
     tree
     |> Enum.map(fn {k, v} -> "#{TreePath.append(mount_path, k)} => #{v}" end)
-    |> Enum.each(&IO.inspect(&1, label: "arrived at sink"))
+    |> Enum.each(&IO.inspect(&1, label: " -sink->"))
 
     {:noreply, state}
   end

@@ -1,6 +1,7 @@
 import Vectoree.TreePath
 
 alias Vectoree.TreeServer
+alias Vectoree.{TreeSource, TreeProcessor, TreeSink}
 
 defmodule Assert do
   def started(result) do
@@ -14,13 +15,13 @@ end
 
 {:ok, server_pid} = TreeServer.start_link()
 
-TreeServer.start_child_source(server_pid, SubtreeSource, ~p"data.src1")
+TreeServer.start_child_source(server_pid, TreeSource, ~p"data.src1")
 |> Assert.started()
 
-TreeServer.start_child_processor(server_pid, SubtreeProcessor, ~p"data.proc1", ~p"data.src1")
+TreeServer.start_child_processor(server_pid, TreeProcessor, ~p"data.proc1", ~p"data.src1")
 |> Assert.started()
 
-TreeServer.start_child_sink(server_pid, SubtreeSink, ~p"data")
+TreeServer.start_child_sink(server_pid, TreeSink, ~p"data")
 |> Assert.started()
 
 # ---
