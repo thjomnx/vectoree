@@ -1,6 +1,4 @@
 defmodule Vectoree.TreeProcessor do
-  alias Vectoree.TreePath
-
   @type tree_path :: Vectoree.TreePath.t()
   @type tree_node :: Vectoree.Node.t()
   @type tree_map :: %{required(tree_path) => tree_node}
@@ -73,10 +71,7 @@ defmodule Vectoree.TreeProcessor do
           handle_notify(local_mount_path, local_tree, source_mount_path, source_tree)
           |> Tree.normalize()
 
-        TreeSinkRegistry
-        |> Registry.select([{{:"$1", :"$2", :"$3"}, [{:"/=", :"$2", self()}], [{{:"$2", :"$3"}}]}])
-        |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(local_mount_path, lpath) end)
-        |> Enum.each(fn {pid, _} -> TreeServer.notify(pid, local_mount_path, new_local_tree) end)
+        TreeServer.notify(local_mount_path, new_local_tree)
 
         {:noreply, {local_mount_path, new_local_tree}}
       end

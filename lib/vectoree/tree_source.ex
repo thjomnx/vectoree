@@ -1,6 +1,4 @@
 defmodule Vectoree.TreeSource do
-  alias Vectoree.TreePath
-
   @type tree_path :: Vectoree.TreePath.t()
   @type tree_node :: Vectoree.Node.t()
   @type tree_map :: %{required(tree_path) => tree_node}
@@ -9,6 +7,8 @@ defmodule Vectoree.TreeSource do
   @callback update_tree(tree_map) :: tree_map
 
   @optional_callbacks create_tree: 0, update_tree: 1
+
+  alias Vectoree.TreePath
 
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
@@ -53,11 +53,7 @@ defmodule Vectoree.TreeSource do
       @impl GenServer
       def handle_info(:update, {mount_path, tree}) do
         new_tree = update_tree(tree) |> Tree.normalize()
-
-        TreeSinkRegistry
-        |> Registry.select([{{:"$1", :"$2", :"$3"}, [{:"/=", :"$2", self()}], [{{:"$2", :"$3"}}]}])
-        |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(mount_path, lpath) end)
-        |> Enum.each(fn {pid, _} -> TreeServer.notify(pid, mount_path, new_tree) end)
+        TreeServer.notify(mount_path, new_tree)
 
         {:noreply, {mount_path, new_tree}}
       end

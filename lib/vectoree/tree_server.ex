@@ -32,6 +32,13 @@ defmodule Vectoree.TreeServer do
     GenServer.call(server, {:query, path})
   end
 
+  def notify(%TreePath{} = path, tree) do
+    TreeSinkRegistry
+    |> Registry.select([{{:"$1", :"$2", :"$3"}, [{:"/=", :"$2", self()}], [{{:"$2", :"$3"}}]}])
+    |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(path, lpath) end)
+    |> Enum.each(fn {pid, _} -> notify(pid, path, tree) end)
+  end
+
   def notify(server, %TreePath{} = path, tree) when is_map(tree) do
     GenServer.cast(server, {:notify, path, tree})
   end
