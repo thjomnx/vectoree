@@ -1,57 +1,126 @@
 defmodule Vectoree.TreeServer do
   use GenServer
-  import Vectoree.TreePath
   require Logger
-  alias Vectoree.{Node, Tree, TreePath}
+  alias Vectoree.TreeSource
+  alias Vectoree.{Tree, TreePath}
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, [], opts)
+  end
+
+  def start_child_source(server, module, %TreePath{} = mount_path) do
+    GenServer.call(server, {:add_source, module, mount_path})
+  end
+
+  def start_child_processor(server, module, %TreePath{} = mount_path, %TreePath{} = listen_path) do
+    GenServer.call(server, {:add_processor, module, mount_path, listen_path})
+  end
+
+  def start_child_sink(server, module, %TreePath{} = listen_path) do
+    GenServer.call(server, {:add_sink, module, listen_path})
+  end
+
+  def mount_source(%TreePath{} = path) do
+    Registry.register(TreeSourceRegistry, :source, path)
+  end
+
+  def register_sink(%TreePath{} = path) do
+    Registry.register(TreeSinkRegistry, :sink, path)
   end
 
   def query(server, %TreePath{} = path) do
     GenServer.call(server, {:query, path})
   end
 
-  def mount_tuple(name, %TreePath{} = path) when is_atom(name) do
-    pid = Process.whereis(name)
-    mount_tuple(pid, path)
-  end
-
-  def mount_tuple(pid, %TreePath{} = path) when is_pid(pid) do
-    {_, _, ppid} = find_parent(pid, path)
-    {:mount, ppid, path}
-  end
-
-  defp find_parent(pid, path) do
-    parent_path = TreePath.parent(path)
-
-    TreeSourceRegistry
-    |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3", :"$2"}}]}])
-    |> Stream.filter(fn {_, mpath, _} -> TreePath.starts_with?(parent_path, mpath) end)
-    |> Enum.max_by(fn {_, mpath, _} -> TreePath.level(mpath) end, fn -> {nil, nil, pid} end)
+  def notify(server, %TreePath{} = path, tree) when is_map(tree) do
+    GenServer.cast(server, {:notify, path, tree})
   end
 
   @impl true
   def init(_opts) do
-    Logger.info("Starting TreeServer")
+    Logger.info("Starting #{__MODULE__}")
 
-    tree = %{
-      ~p"data.local" => Node.new()
-    }
+    children = [
+      {Registry, keys: :duplicate, name: TreeSourceRegistry},
+      {Registry, keys: :duplicate, name: TreeSinkRegistry},
+      {DynamicSupervisor, name: TreeSourceSupervisor},
+      {DynamicSupervisor, name: TreeProcessorSupervisor},
+      {DynamicSupervisor, name: TreeSinkSupervisor}
+    ]
 
-    state = Tree.normalize(tree)
-    {:ok, state}
+    {:ok, supervisor_pid} = Supervisor.start_link(children, strategy: :one_for_one)
+
+    {:ok, %{supervisor: supervisor_pid, tree: Map.new()}}
   end
 
   @impl true
-  def handle_call({:query, path}, _from, state) do
+  def handle_call({:add_source, module, mount_path}, _from, %{tree: tree} = state) do
+    unless mount_conflict?(mount_path) do
+      result =
+        DynamicSupervisor.start_child(
+          TreeSourceSupervisor,
+          {module, {:mount, mount_path}}
+        )
+
+      case result do
+        {:ok, _} ->
+          {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+
+        _ ->
+          {:reply, result, state}
+      end
+    else
+      {:reply, :error, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:add_processor, module, mount_path, listen_path}, _from, %{tree: tree} = state) do
+    unless mount_conflict?(mount_path) do
+      result =
+        DynamicSupervisor.start_child(
+          TreeProcessorSupervisor,
+          {module, %{:mount => mount_path, :listen => listen_path}}
+        )
+
+      case result do
+        {:ok, _} ->
+          {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+
+        _ ->
+          {:reply, result, state}
+      end
+    else
+      {:reply, :error, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:add_sink, module, listen_path}, _from, state) do
+    result =
+      DynamicSupervisor.start_child(
+        TreeSinkSupervisor,
+        {module, listen_path}
+      )
+
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_call({:query, path}, _from, %{tree: tree} = state) do
     merged_tree =
       TreeSourceRegistry
-      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$3", :"$2"}}]}])
-      |> Stream.filter(fn {_, mpath, _} -> TreePath.starts_with?(mpath, path) end)
-      |> Task.async_stream(fn {_, mpath, mpid} -> SubtreeSource.query(mpid, mpath) end)
-      |> Enum.reduce(state, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
+      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+      |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
+      |> Task.async_stream(fn {mpid, mpath} -> TreeSource.query(mpid, mpath) end)
+      |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
 
     {:reply, merged_tree, state}
+  end
+
+  defp mount_conflict?(path) do
+    TreeSourceRegistry
+    |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+    |> Enum.any?(fn {_, mpath} -> TreePath.starts_with?(path, mpath) end)
   end
 end
