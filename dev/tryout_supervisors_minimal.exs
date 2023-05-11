@@ -13,9 +13,34 @@ defmodule Assert do
   end
 end
 
+defmodule CustomTimedSource do
+  use Vectoree.TimedTreeSource
+  import Vectoree.TreePath
+  alias Vectoree.Node
+
+  @impl Vectoree.TimedTreeSource
+  def create_tree() do
+    for i <- 1..2, into: %{} do
+      {~p"node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
+    end
+  end
+
+  @impl Vectoree.TimedTreeSource
+  def update_tree({_mount_path, tree}) do
+    tree
+    |> Stream.filter(fn {_, node} -> node.value != :empty end)
+    |> Map.new(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
+  end
+
+  @impl Vectoree.TimedTreeSource
+  def next_update() do
+    300
+  end
+end
+
 {:ok, server_pid} = TreeServer.start_link()
 
-TreeServer.start_child_source(server_pid, TreeSource, ~p"data.src1")
+TreeServer.start_child_source(server_pid, CustomTimedSource, ~p"data.custsrc1")
 |> Assert.started()
 
 TreeServer.start_child_processor(server_pid, TreeProcessor, ~p"data.proc1", ~p"data.src1")
