@@ -100,7 +100,7 @@ defmodule Vectoree.TreeServer do
     result =
       DynamicSupervisor.start_child(
         TreeSinkSupervisor,
-        {module, listen_path}
+        {module, %{:listen => listen_path}}
       )
 
     {:reply, result, state}

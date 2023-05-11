@@ -1,56 +1,85 @@
 defmodule Vectoree.TreeProcessor do
-  use GenServer
-  import Vectoree.TreePath
-  require Logger
-  alias Vectoree.TreeServer
-  alias Vectoree.{Node, Tree, TreePath}
+  alias Vectoree.TreePath
 
-  def start_link(init_arg) do
-    GenServer.start_link(__MODULE__, init_arg)
-  end
+  @type tree_path :: Vectoree.TreePath.t()
+  @type tree_node :: Vectoree.Node.t()
+  @type tree_map :: %{required(tree_path) => tree_node}
 
-  def query(server, %TreePath{} = path) do
-    GenServer.call(server, {:query, path})
-  end
+  @callback create_tree() :: tree_map
+  @callback update_tree(tree_map) :: tree_map
+  @callback process_notifications(tree_path, tree_map, tree_path, tree_map) :: tree_map
 
-  @impl true
-  def init(init_arg) do
-    %{:mount => mount_path, :listen => listen_path} =
-      cond do
-        is_function(init_arg) -> init_arg.()
-        true -> init_arg
+  @optional_callbacks create_tree: 0, update_tree: 1, process_notifications: 4
+
+  defmacro __using__(opts) do
+    quote location: :keep, bind_quoted: [opts: opts] do
+      @behaviour Vectoree.TreeProcessor
+
+      use GenServer
+      require Logger
+      alias Vectoree.TreeServer
+      alias Vectoree.{Node, Tree, TreePath}
+
+      def start_link(init_arg) do
+        GenServer.start_link(__MODULE__, init_arg)
       end
 
-    Logger.info(
-      "Starting #{__MODULE__} mounted on '#{mount_path}', listening on '#{listen_path}'"
-    )
-
-    TreeServer.mount_source(mount_path)
-    TreeServer.register_sink(listen_path)
-
-    tree =
-      for i <- 1..2, into: %{} do
-        {~p"node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
+      def create_tree() do
+        Map.new()
       end
 
-    {:ok, Tree.normalize(tree)}
-  end
+      def update_tree(tree) do
+        tree
+      end
 
-  @impl true
-  def handle_call({:query, path}, _from, state) do
-    transformer = fn {local_path, node} -> {TreePath.append(path, local_path), node} end
+      def process_notifications(_, local_tree, _, _) do
+        local_tree
+      end
 
-    {:reply, Map.new(state, transformer), state}
-  end
+      defoverridable Vectoree.TreeProcessor
 
-  @impl true
-  def handle_cast({:notify, mount_path, tree}, state) do
-    Logger.info("Notification received at #{__MODULE__}")
+      @impl GenServer
+      def init(init_arg) do
+        %{:mount => mount_path, :listen => listen_path} =
+          cond do
+            is_function(init_arg) -> init_arg.()
+            true -> init_arg
+          end
 
-    tree
-    |> Enum.map(fn {k, v} -> "#{TreePath.append(mount_path, k)} => #{v}" end)
-    |> Enum.each(&IO.inspect(&1, label: " -proc->"))
+        Logger.info(
+          "Starting #{__MODULE__} mounted on '#{mount_path}', listening on '#{listen_path}'"
+        )
 
-    {:noreply, state}
+        TreeServer.mount_source(mount_path)
+        TreeServer.register_sink(listen_path)
+
+        tree = create_tree() |> Tree.normalize()
+
+        {:ok, {mount_path, tree}}
+      end
+
+      @impl GenServer
+      def handle_call({:query, path}, _from, {_, tree} = state) do
+        concatenizer = fn {local_path, node} -> {TreePath.append(path, local_path), node} end
+
+        {:reply, Map.new(tree, concatenizer), state}
+      end
+
+      @impl GenServer
+      def handle_cast({:notify, source_mount_path, source_tree}, {local_mount_path, local_tree}) do
+        Logger.info("Notification received at #{__MODULE__}")
+
+
+        new_local_tree = process_notifications(local_mount_path, local_tree, source_mount_path, source_tree) |> Tree.normalize()
+        root = TreePath.root(local_mount_path)
+
+        TreeSinkRegistry
+        |> Registry.select([{{:"$1", :"$2", :"$3"}, [{:"/=", :"$2", self()}], [{{:"$2", :"$3"}}]}])
+        |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(lpath, root) end)
+        |> Enum.each(fn {pid, _} -> TreeServer.notify(pid, local_mount_path, new_local_tree) end)
+
+        {:noreply, {local_mount_path, new_local_tree}}
+      end
+    end
   end
 end

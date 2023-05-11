@@ -25,10 +25,45 @@ defmodule CustomTimedSource do
   end
 
   @impl Vectoree.TimedTreeSource
-  def update_tree({_mount_path, tree}) do
+  def update_tree(tree) do
     tree
     |> Stream.filter(fn {_, node} -> node.value != :empty end)
     |> Map.new(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
+  end
+end
+
+defmodule CustomProcessor do
+  use Vectoree.TreeProcessor
+
+  @impl Vectoree.TreeProcessor
+  def create_tree() do
+    for i <- 1..2, into: %{} do
+      {~p"node_#{i}", Node.new(:int16, 12345, :none)}
+    end
+  end
+
+  @impl Vectoree.TreeProcessor
+  def process_notifications(_local_mount_path, local_tree, source_mount_path, source_tree) do
+    source_tree
+        |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+        |> Enum.each(&IO.inspect(&1, label: " -proc->"))
+
+    local_tree
+  end
+end
+
+defmodule CustomSink do
+  use Vectoree.TreeSink
+
+  @impl Vectoree.TreeSink
+  def process_notifications(source_mount_path, source_tree, state) do
+    source_tree
+    |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+    |> Enum.each(&IO.inspect(&1, label: " -sink->"))
+
+    IO.inspect(state, label: "count")
+
+    state + 1
   end
 end
 
@@ -48,7 +83,7 @@ TreeServer.start_child_source(server_pid, CustomTimedSource, ~p"data.local.src4"
 
 TreeServer.start_child_processor(
   server_pid,
-  TreeProcessor,
+  CustomProcessor,
   ~p"data.local.proc1",
   ~p"data.local.src1"
 )
@@ -56,7 +91,7 @@ TreeServer.start_child_processor(
 
 TreeServer.start_child_processor(
   server_pid,
-  TreeProcessor,
+  CustomProcessor,
   ~p"data.local.proc2",
   ~p"data.local.src2"
 )
@@ -64,16 +99,16 @@ TreeServer.start_child_processor(
 
 TreeServer.start_child_processor(
   server_pid,
-  TreeProcessor,
+  CustomProcessor,
   ~p"data.local.proc4",
   ~p"data.local.src4"
 )
 |> Assert.started()
 
-TreeServer.start_child_sink(server_pid, TreeSink, ~p"data") |> Assert.started()
-TreeServer.start_child_sink(server_pid, TreeSink, ~p"data") |> Assert.started()
-TreeServer.start_child_sink(server_pid, TreeSink, ~p"data.local.src1") |> Assert.started()
-TreeServer.start_child_sink(server_pid, TreeSink, ~p"data.local.src3") |> Assert.started()
+TreeServer.start_child_sink(server_pid, CustomSink, ~p"data") |> Assert.started()
+TreeServer.start_child_sink(server_pid, CustomSink, ~p"data") |> Assert.started()
+TreeServer.start_child_sink(server_pid, CustomSink, ~p"data.local.src1") |> Assert.started()
+TreeServer.start_child_sink(server_pid, CustomSink, ~p"data.local.src3") |> Assert.started()
 
 # ---
 
