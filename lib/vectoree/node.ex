@@ -1,4 +1,12 @@
 defmodule Vectoree.Node do
+  @type t :: %__MODULE__{
+          type: atom(),
+          value: any(),
+          unit: atom(),
+          status: integer(),
+          modified: integer()
+        }
+
   defstruct [
     :type,
     :value,
