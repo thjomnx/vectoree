@@ -64,11 +64,10 @@ defmodule Vectoree.TimedTreeSource do
       @impl GenServer
       def handle_info(:update, {mount_path, tree}) do
         new_tree = update_tree(tree) |> Tree.normalize()
-        root = TreePath.root(mount_path)
 
         TreeSinkRegistry
         |> Registry.select([{{:"$1", :"$2", :"$3"}, [{:"/=", :"$2", self()}], [{{:"$2", :"$3"}}]}])
-        |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(lpath, root) end)
+        |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(mount_path, lpath) end)
         |> Enum.each(fn {pid, _} -> TreeServer.notify(pid, mount_path, new_tree) end)
 
         Process.send_after(self(), :update, next_update())

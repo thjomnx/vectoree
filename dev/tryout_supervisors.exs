@@ -43,10 +43,10 @@ defmodule CustomProcessor do
   end
 
   @impl Vectoree.TreeProcessor
-  def process_notifications(_local_mount_path, local_tree, source_mount_path, source_tree) do
+  def handle_notify(_local_mount_path, local_tree, source_mount_path, source_tree) do
     source_tree
-        |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
-        |> Enum.each(&IO.inspect(&1, label: " -proc->"))
+    |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+    |> Enum.each(&IO.inspect(&1, label: " -proc->"))
 
     local_tree
   end
@@ -56,7 +56,7 @@ defmodule CustomSink do
   use Vectoree.TreeSink
 
   @impl Vectoree.TreeSink
-  def process_notifications(source_mount_path, source_tree, state) do
+  def handle_notify(source_mount_path, source_tree, state) do
     source_tree
     |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
     |> Enum.each(&IO.inspect(&1, label: " -sink->"))

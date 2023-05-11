@@ -33,8 +33,13 @@ defmodule CustomTimedSource do
   end
 
   @impl Vectoree.TimedTreeSource
+  def first_update() do
+    2000
+  end
+
+  @impl Vectoree.TimedTreeSource
   def next_update() do
-    1000
+    2000
   end
 end
 
@@ -49,10 +54,10 @@ defmodule CustomProcessor do
   end
 
   @impl Vectoree.TreeProcessor
-  def process_notifications(_local_mount_path, local_tree, source_mount_path, source_tree) do
+  def handle_notify(_local_mount_path, local_tree, source_mount_path, source_tree) do
     source_tree
-        |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
-        |> Enum.each(&IO.inspect(&1, label: " -proc->"))
+    |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+    |> Enum.each(&IO.inspect(&1, label: " -proc->"))
 
     local_tree
   end
@@ -62,12 +67,10 @@ defmodule CustomSink do
   use Vectoree.TreeSink
 
   @impl Vectoree.TreeSink
-  def process_notifications(source_mount_path, source_tree, state) do
+  def handle_notify(source_mount_path, source_tree, state) do
     source_tree
     |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
     |> Enum.each(&IO.inspect(&1, label: " -sink->"))
-
-    IO.inspect(state, label: "count")
 
     state + 1
   end
@@ -82,7 +85,7 @@ TreeServer.start_child_processor(
   server_pid,
   CustomProcessor,
   ~p"data.proc1",
-  ~p"data.crc1"
+  ~p"data.src1"
 )
 |> Assert.started()
 

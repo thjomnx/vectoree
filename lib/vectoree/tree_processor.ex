@@ -7,9 +7,9 @@ defmodule Vectoree.TreeProcessor do
 
   @callback create_tree() :: tree_map
   @callback update_tree(tree_map) :: tree_map
-  @callback process_notifications(tree_path, tree_map, tree_path, tree_map) :: tree_map
+  @callback handle_notify(tree_path, tree_map, tree_path, tree_map) :: tree_map
 
-  @optional_callbacks create_tree: 0, update_tree: 1, process_notifications: 4
+  @optional_callbacks create_tree: 0, update_tree: 1, handle_notify: 4
 
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
@@ -32,7 +32,7 @@ defmodule Vectoree.TreeProcessor do
         tree
       end
 
-      def process_notifications(_, local_tree, _, _) do
+      def handle_notify(_, local_tree, _, _) do
         local_tree
       end
 
@@ -69,13 +69,13 @@ defmodule Vectoree.TreeProcessor do
       def handle_cast({:notify, source_mount_path, source_tree}, {local_mount_path, local_tree}) do
         Logger.info("Notification received at #{__MODULE__}")
 
-
-        new_local_tree = process_notifications(local_mount_path, local_tree, source_mount_path, source_tree) |> Tree.normalize()
-        root = TreePath.root(local_mount_path)
+        new_local_tree =
+          handle_notify(local_mount_path, local_tree, source_mount_path, source_tree)
+          |> Tree.normalize()
 
         TreeSinkRegistry
         |> Registry.select([{{:"$1", :"$2", :"$3"}, [{:"/=", :"$2", self()}], [{{:"$2", :"$3"}}]}])
-        |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(lpath, root) end)
+        |> Stream.filter(fn {_, lpath} -> TreePath.starts_with?(local_mount_path, lpath) end)
         |> Enum.each(fn {pid, _} -> TreeServer.notify(pid, local_mount_path, new_local_tree) end)
 
         {:noreply, {local_mount_path, new_local_tree}}

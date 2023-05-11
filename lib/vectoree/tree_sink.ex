@@ -3,9 +3,9 @@ defmodule Vectoree.TreeSink do
   @type tree_node :: Vectoree.Node.t()
   @type tree_map :: %{required(tree_path) => tree_node}
 
-  @callback process_notifications(tree_path, tree_map, any()) :: any()
+  @callback handle_notify(tree_path, tree_map, any()) :: any()
 
-  @optional_callbacks process_notifications: 3
+  @optional_callbacks handle_notify: 3
 
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
@@ -20,7 +20,7 @@ defmodule Vectoree.TreeSink do
         GenServer.start_link(__MODULE__, init_arg)
       end
 
-      def process_notifications(_, _, state) do
+      def handle_notify(_, _, state) do
         state
       end
 
@@ -45,7 +45,7 @@ defmodule Vectoree.TreeSink do
       def handle_cast({:notify, source_mount_path, source_tree}, state) do
         Logger.info("Notification received at #{__MODULE__}")
 
-        new_state = process_notifications(source_mount_path, source_tree, state)
+        new_state = handle_notify(source_mount_path, source_tree, state)
 
         {:noreply, new_state}
       end
