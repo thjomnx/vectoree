@@ -3,9 +3,10 @@ defmodule Vectoree.TreeSink do
   @type tree_node :: Vectoree.Node.t()
   @type tree_map :: %{required(tree_path) => tree_node}
 
+  @callback create_state() :: any()
   @callback handle_notify(tree_path, tree_map, any()) :: any()
 
-  @optional_callbacks handle_notify: 3
+  @optional_callbacks create_state: 0, handle_notify: 3
 
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
@@ -18,6 +19,10 @@ defmodule Vectoree.TreeSink do
 
       def start_link(init_arg) do
         GenServer.start_link(__MODULE__, init_arg)
+      end
+
+      def create_state() do
+        []
       end
 
       def handle_notify(_, _, state) do
@@ -38,7 +43,9 @@ defmodule Vectoree.TreeSink do
 
         TreeServer.register_sink(listen_path)
 
-        {:ok, 0}
+        state = create_state()
+
+        {:ok, state}
       end
 
       @impl GenServer

@@ -49,17 +49,22 @@ defmodule CustomProcessor do
   @impl Vectoree.TreeProcessor
   def create_tree() do
     for i <- 1..2, into: %{} do
-      {~p"node_#{i}", Node.new(:int16, 12345, :none)}
+      {~p"node_#{i}", Node.new(:int32, 0, :none)}
     end
   end
 
   @impl Vectoree.TreeProcessor
   def handle_notify(_local_mount_path, local_tree, source_mount_path, source_tree) do
     source_tree
-    |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+    |> Stream.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
     |> Enum.each(&IO.inspect(&1, label: " -proc->"))
 
-    local_tree
+    new_local_tree =
+      source_tree
+      |> Stream.each(fn {k, v} -> Map.put(local_tree, k, v) end)
+      |> Enum.into(%{})
+
+    new_local_tree
   end
 end
 
@@ -67,12 +72,41 @@ defmodule CustomSink do
   use Vectoree.TreeSink
 
   @impl Vectoree.TreeSink
+  def create_state() do
+    0
+  end
+
+  @impl Vectoree.TreeSink
   def handle_notify(source_mount_path, source_tree, state) do
     source_tree
     |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
     |> Enum.each(&IO.inspect(&1, label: " -sink->"))
 
-    state + 1
+    state + map_size(source_tree)
+  end
+end
+
+defmodule AmqpSink do
+  use Vectoree.TreeSink
+
+  @impl Vectoree.TreeSink
+  def create_state() do
+    {:ok, connection} = AMQP.Connection.open()
+    {:ok, channel} = AMQP.Channel.open(connection)
+
+    AMQP.Queue.declare(channel, "vectoree_queue")
+
+    channel
+  end
+
+  @impl Vectoree.TreeSink
+  def handle_notify(source_mount_path, source_tree, channel) do
+    source_tree
+    |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+    |> Stream.each(&AMQP.Basic.publish(channel, "", "vectoree_queue", &1))
+    |> Enum.each(&IO.inspect(&1, label: " -amqp->"))
+
+    channel
   end
 end
 
@@ -92,6 +126,9 @@ TreeServer.start_child_processor(
 TreeServer.start_child_sink(server_pid, CustomSink, ~p"data")
 |> Assert.started()
 
+TreeServer.start_child_sink(server_pid, AmqpSink, ~p"data.proc1")
+|> Assert.started()
+
 # ---
 
 DynamicSupervisor.count_children(TreeSourceSupervisor) |> IO.inspect(label: "sources")
@@ -103,5 +140,27 @@ DynamicSupervisor.count_children(TreeSinkSupervisor) |> IO.inspect(label: "sinks
 TreeServer.query(server_pid, ~p"data")
 |> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
 |> IO.inspect(label: "query on 'data'")
+
+# ---
+
+defmodule Receive do
+  def wait_for_messages do
+    receive do
+      {:basic_deliver, payload, _meta} ->
+        IO.inspect("#{payload}", label: " <-amqp-")
+        wait_for_messages()
+    end
+  end
+end
+
+{:ok, connection} = AMQP.Connection.open()
+{:ok, channel} = AMQP.Channel.open(connection)
+
+AMQP.Queue.declare(channel, "vectoree_queue")
+AMQP.Basic.consume(channel, "vectoree_queue", nil, no_ack: true)
+
+Receive.wait_for_messages()
+
+# ---
 
 Process.sleep(:infinity)
