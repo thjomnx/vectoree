@@ -94,7 +94,7 @@ defmodule AmqpSink do
     {:ok, connection} = AMQP.Connection.open()
     {:ok, channel} = AMQP.Channel.open(connection)
 
-    AMQP.Queue.declare(channel, "vectoree_queue")
+    AMQP.Exchange.declare(channel, "vectoree", :fanout)
 
     channel
   end
@@ -103,7 +103,7 @@ defmodule AmqpSink do
   def handle_notify(source_mount_path, source_tree, channel) do
     source_tree
     |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
-    |> Stream.each(&AMQP.Basic.publish(channel, "", "vectoree_queue", &1))
+    |> Stream.each(&AMQP.Basic.publish(channel, "vectoree", "", &1))
     |> Enum.each(&IO.inspect(&1, label: " -amqp->"))
 
     channel
@@ -144,11 +144,11 @@ TreeServer.query(server_pid, ~p"data")
 # ---
 
 defmodule Receive do
-  def wait_for_messages do
+  def wait_for_messages(channel) do
     receive do
       {:basic_deliver, payload, _meta} ->
         IO.inspect("#{payload}", label: " <-amqp-")
-        wait_for_messages()
+        wait_for_messages(channel)
     end
   end
 end
@@ -156,10 +156,13 @@ end
 {:ok, connection} = AMQP.Connection.open()
 {:ok, channel} = AMQP.Channel.open(connection)
 
-AMQP.Queue.declare(channel, "vectoree_queue")
-AMQP.Basic.consume(channel, "vectoree_queue", nil, no_ack: true)
+AMQP.Exchange.declare(channel, "vectoree", :fanout)
 
-Receive.wait_for_messages()
+{:ok, %{queue: queue_name}} = AMQP.Queue.declare(channel, "", exclusive: true)
+AMQP.Queue.bind(channel, queue_name, "vectoree")
+AMQP.Basic.consume(channel, queue_name, nil, no_ack: true)
+
+Receive.wait_for_messages(channel)
 
 # ---
 
