@@ -66,7 +66,7 @@ defmodule Vectoree.TreeServer do
       result =
         DynamicSupervisor.start_child(
           TreeSourceSupervisor,
-          {module, {:mount, mount_path}}
+          {module, %{mount: mount_path}}
         )
 
       case result do
@@ -87,7 +87,7 @@ defmodule Vectoree.TreeServer do
       result =
         DynamicSupervisor.start_child(
           TreeProcessorSupervisor,
-          {module, %{:mount => mount_path, :listen => listen_path}}
+          {module, %{mount: mount_path, listen: listen_path}}
         )
 
       case result do
@@ -107,7 +107,7 @@ defmodule Vectoree.TreeServer do
     result =
       DynamicSupervisor.start_child(
         TreeSinkSupervisor,
-        {module, %{:listen => listen_path}}
+        {module, %{listen: listen_path}}
       )
 
     {:reply, result, state}

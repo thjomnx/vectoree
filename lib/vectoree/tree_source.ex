@@ -1,4 +1,5 @@
 defmodule Vectoree.TreeSource do
+  alias Vectoree.TreePath
   @type tree_path :: Vectoree.TreePath.t()
   @type tree_node :: Vectoree.Node.t()
   @type tree_map :: %{required(tree_path) => tree_node}
@@ -41,13 +42,7 @@ defmodule Vectoree.TreeSource do
 
       @impl GenServer
       def init(init_arg) do
-        {:mount, mount_path} =
-          cond do
-            is_function(init_arg) -> init_arg.()
-            true -> init_arg
-          end
-
-        Logger.info("Starting #{__MODULE__} on '#{mount_path}'")
+        %{mount: mount_path} = Vectoree.TreeSource.get_tree_args(init_arg)
 
         TreeServer.mount_source(mount_path)
 
@@ -69,6 +64,14 @@ defmodule Vectoree.TreeSource do
         {:reply, handle_query(query_path, local_tree), state}
       end
     end
+  end
+
+  def get_tree_args(%{mount: %TreePath{}} = map) do
+    Map.take(map, [:mount])
+  end
+
+  def get_tree_args(args) when is_function(args) do
+    args.() |> get_tree_args()
   end
 
   def query(server, %TreePath{} = path) do
