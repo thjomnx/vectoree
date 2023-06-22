@@ -31,6 +31,12 @@ defmodule Vectoree.TreeSource do
         tree
       end
 
+      def handle_query(query_path, local_tree) do
+        Map.new(local_tree, fn {local_path, node} ->
+          {TreePath.append(query_path, local_path), node}
+        end)
+      end
+
       defoverridable Vectoree.TreeSource
 
       @impl GenServer
@@ -47,22 +53,20 @@ defmodule Vectoree.TreeSource do
 
         tree = create_tree() |> Tree.normalize()
 
-        {:ok, {mount_path, tree}}
+        {:ok, %{mount_path: mount_path, local_tree: tree}}
       end
 
       @impl GenServer
-      def handle_info(:update, {mount_path, tree}) do
+      def handle_info(:update, %{mount_path: mount_path, local_tree: tree} = state) do
         new_tree = update_tree(tree) |> Tree.normalize()
         TreeServer.notify(mount_path, new_tree)
 
-        {:noreply, {mount_path, new_tree}}
+        {:noreply, %{state | mount_path: mount_path, local_tree: new_tree}}
       end
 
       @impl GenServer
-      def handle_call({:query, path}, _from, {_, tree} = state) do
-        concatenizer = fn {local_path, node} -> {TreePath.append(path, local_path), node} end
-
-        {:reply, Map.new(tree, concatenizer), state}
+      def handle_call({:query, query_path}, _from, %{local_tree: local_tree} = state) do
+        {:reply, handle_query(query_path, local_tree), state}
       end
     end
   end

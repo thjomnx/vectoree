@@ -30,7 +30,13 @@ defmodule Vectoree.TreeProcessor do
         tree
       end
 
-      def handle_notify(_, local_tree, _, _) do
+      def handle_query(query_path, local_tree) do
+        Map.new(local_tree, fn {local_path, node} ->
+          {TreePath.append(query_path, local_path), node}
+        end)
+      end
+
+      def handle_notify(_local_mount_path, local_tree, _source_mount_path, _source_tree) do
         local_tree
       end
 
@@ -53,18 +59,22 @@ defmodule Vectoree.TreeProcessor do
 
         tree = create_tree() |> Tree.normalize()
 
-        {:ok, {mount_path, tree}}
+        {:ok, %{mount_path: mount_path, local_tree: tree}}
       end
 
       @impl GenServer
-      def handle_call({:query, path}, _from, {_, tree} = state) do
-        concatenizer = fn {local_path, node} -> {TreePath.append(path, local_path), node} end
-
-        {:reply, Map.new(tree, concatenizer), state}
+      def handle_call({:query, query_path}, _from, %{local_tree: tree} = state) do
+        {:reply, handle_query(query_path, tree), state}
       end
 
       @impl GenServer
-      def handle_cast({:notify, source_mount_path, source_tree}, {local_mount_path, local_tree}) do
+      def handle_cast(
+            {:notify, source_mount_path, source_tree},
+            %{
+              mount_path: local_mount_path,
+              local_tree: local_tree
+            } = state
+          ) do
         Logger.info("Notification received at #{__MODULE__}")
 
         new_local_tree =
@@ -73,7 +83,7 @@ defmodule Vectoree.TreeProcessor do
 
         TreeServer.notify(local_mount_path, new_local_tree)
 
-        {:noreply, {local_mount_path, new_local_tree}}
+        {:noreply, %{state | mount_path: local_mount_path, local_tree: new_local_tree}}
       end
     end
   end
