@@ -17,7 +17,6 @@ defmodule Vectoree.TimedTreeSource do
       @behaviour Vectoree.TimedTreeSource
 
       use GenServer
-      require Logger
       alias Vectoree.TreeServer
       alias Vectoree.{Tree, TreePath}
 

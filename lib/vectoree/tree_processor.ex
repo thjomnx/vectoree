@@ -15,7 +15,6 @@ defmodule Vectoree.TreeProcessor do
       @behaviour Vectoree.TreeProcessor
 
       use GenServer
-      require Logger
       alias Vectoree.TreeServer
       alias Vectoree.{Node, Tree, TreePath}
 
@@ -68,8 +67,6 @@ defmodule Vectoree.TreeProcessor do
               local_tree: local_tree
             } = state
           ) do
-        Logger.info("Notification received at #{__MODULE__}")
-
         new_local_tree =
           handle_notify(local_mount_path, local_tree, source_mount_path, source_tree)
           |> Tree.normalize()

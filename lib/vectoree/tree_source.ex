@@ -16,7 +16,6 @@ defmodule Vectoree.TreeSource do
       @behaviour Vectoree.TreeSource
 
       use GenServer
-      require Logger
       alias Vectoree.TreeServer
       alias Vectoree.{Tree, TreePath}
 

@@ -13,7 +13,6 @@ defmodule Vectoree.TreeSink do
       @behaviour Vectoree.TreeSink
 
       use GenServer
-      require Logger
       alias Vectoree.TreeServer
       alias Vectoree.TreePath
 
@@ -38,8 +37,6 @@ defmodule Vectoree.TreeSink do
 
       @impl GenServer
       def handle_cast({:notify, source_mount_path, source_tree}, state) do
-        Logger.info("Notification received at #{__MODULE__}")
-
         new_state = handle_notify(source_mount_path, source_tree, state)
 
         {:noreply, new_state}
