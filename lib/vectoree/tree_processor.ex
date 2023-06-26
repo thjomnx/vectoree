@@ -44,7 +44,7 @@ defmodule Vectoree.TreeProcessor do
 
       @impl GenServer
       def init(init_arg) do
-        %{mount: mount_path, listen: listen_path} = Vectoree.TreeProcessor.get_tree_args(init_arg)
+        %{mount: mount_path, listen: listen_path} = TreeServer.args2info(init_arg)
 
         TreeServer.mount_source(mount_path)
         TreeServer.register_sink(listen_path)
@@ -76,13 +76,5 @@ defmodule Vectoree.TreeProcessor do
         {:noreply, %{state | mount_path: local_mount_path, local_tree: new_local_tree}}
       end
     end
-  end
-
-  def get_tree_args(%{mount: %TreePath{}, listen: %TreePath{}} = map) do
-    Map.take(map, [:mount, :listen])
-  end
-
-  def get_tree_args(args) when is_function(args) do
-    args.() |> get_tree_args()
   end
 end

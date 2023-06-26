@@ -50,7 +50,7 @@ defmodule Vectoree.TimedTreeSource do
 
       @impl GenServer
       def init(init_arg) do
-        %{mount: mount_path} = Vectoree.TimedTreeSource.get_tree_args(init_arg)
+        %{mount: mount_path} = TreeServer.args2info(init_arg)
 
         TreeServer.mount_source(mount_path)
 
@@ -76,13 +76,5 @@ defmodule Vectoree.TimedTreeSource do
         {:reply, handle_query(query_path, local_tree), state}
       end
     end
-  end
-
-  def get_tree_args(%{mount: %TreePath{}} = map) do
-    Map.take(map, [:mount])
-  end
-
-  def get_tree_args(args) when is_function(args) do
-    args.() |> get_tree_args()
   end
 end

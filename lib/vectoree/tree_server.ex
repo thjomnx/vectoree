@@ -4,6 +4,22 @@ defmodule Vectoree.TreeServer do
   alias Vectoree.TreeSource
   alias Vectoree.{Tree, TreePath}
 
+  def args2info(%{mount: %TreePath{}, listen: %TreePath{}} = map) do
+    Map.take(map, [:mount, :listen])
+  end
+
+  def args2info(%{mount: %TreePath{}} = map) do
+    Map.take(map, [:mount])
+  end
+
+  def args2info(%{listen: %TreePath{}} = map) do
+    Map.take(map, [:listen])
+  end
+
+  def args2info(args) when is_function(args) do
+    args.() |> args2info()
+  end
+
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, [], opts)
   end
