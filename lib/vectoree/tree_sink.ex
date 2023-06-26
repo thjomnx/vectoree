@@ -26,15 +26,6 @@ defmodule Vectoree.TreeSink do
       defoverridable Vectoree.TreeSink
 
       @impl GenServer
-      def init(init_arg) do
-        %{listen: listen_path} = TreeServer.args2info(init_arg)
-
-        TreeServer.register_sink(listen_path)
-
-        {:ok, 0}
-      end
-
-      @impl GenServer
       def handle_cast({:notify, source_mount_path, source_tree}, state) do
         new_state = handle_notify(source_mount_path, source_tree, state)
 

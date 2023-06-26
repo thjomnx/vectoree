@@ -1,7 +1,5 @@
 defmodule Vectoree.TreeServer do
   use GenServer
-  require Logger
-  alias Vectoree.TreeSource
   alias Vectoree.{Tree, TreePath}
 
   def args2info(%{mount: %TreePath{}, listen: %TreePath{}} = map) do
@@ -61,8 +59,6 @@ defmodule Vectoree.TreeServer do
 
   @impl true
   def init(_opts) do
-    Logger.info("Starting #{__MODULE__}")
-
     children = [
       {Registry, keys: :duplicate, name: TreeSourceRegistry},
       {Registry, keys: :duplicate, name: TreeSinkRegistry},
@@ -135,7 +131,7 @@ defmodule Vectoree.TreeServer do
       TreeSourceRegistry
       |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
       |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
-      |> Task.async_stream(fn {mpid, mpath} -> TreeSource.query(mpid, mpath) end)
+      |> Task.async_stream(fn {mpid, mpath} -> query(mpid, mpath) end)
       |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
 
     {:reply, merged_tree, state}
