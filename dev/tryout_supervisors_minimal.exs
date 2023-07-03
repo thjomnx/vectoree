@@ -104,10 +104,10 @@ end
 
 {:ok, server_pid} = TreeServer.start_link()
 
-TreeServer.start_child_source(server_pid, CustomTimedSource, ~p"data.src1")
+TreeServer.start_source(server_pid, CustomTimedSource, ~p"data.src1")
 |> Assert.started()
 
-TreeServer.start_child_processor(
+TreeServer.start_processor(
   server_pid,
   CustomProcessor,
   ~p"data.proc1",
@@ -115,7 +115,7 @@ TreeServer.start_child_processor(
 )
 |> Assert.started()
 
-TreeServer.start_child_sink(server_pid, CustomSink, ~p"data")
+TreeServer.start_sink(server_pid, CustomSink, ~p"data")
 |> Assert.started()
 
 # ---

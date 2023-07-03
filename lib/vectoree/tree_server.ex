@@ -22,15 +22,15 @@ defmodule Vectoree.TreeServer do
     GenServer.start_link(__MODULE__, [], opts)
   end
 
-  def start_child_source(server, module, %TreePath{} = mount_path) do
+  def start_source(server, module, %TreePath{} = mount_path) do
     GenServer.call(server, {:add_source, module, mount_path})
   end
 
-  def start_child_processor(server, module, %TreePath{} = mount_path, %TreePath{} = listen_path) do
+  def start_processor(server, module, %TreePath{} = mount_path, %TreePath{} = listen_path) do
     GenServer.call(server, {:add_processor, module, mount_path, listen_path})
   end
 
-  def start_child_sink(server, module, %TreePath{} = listen_path) do
+  def start_sink(server, module, %TreePath{} = listen_path) do
     GenServer.call(server, {:add_sink, module, listen_path})
   end
 

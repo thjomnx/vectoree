@@ -104,19 +104,19 @@ end
 
 {:ok, server_pid} = TreeServer.start_link()
 
-TreeServer.start_child_source(server_pid, CustomTimedSource, ~p"data.local.src1")
+TreeServer.start_source(server_pid, CustomTimedSource, ~p"data.local.src1")
 |> Assert.started()
 
-TreeServer.start_child_source(server_pid, CustomTimedSource, ~p"data.local.src2")
+TreeServer.start_source(server_pid, CustomTimedSource, ~p"data.local.src2")
 |> Assert.started()
 
-TreeServer.start_child_source(server_pid, CustomTimedSource, ~p"data.local.src3")
+TreeServer.start_source(server_pid, CustomTimedSource, ~p"data.local.src3")
 |> Assert.started()
 
-TreeServer.start_child_source(server_pid, CustomTimedSource, ~p"data.local.src4")
+TreeServer.start_source(server_pid, CustomTimedSource, ~p"data.local.src4")
 |> Assert.started()
 
-TreeServer.start_child_processor(
+TreeServer.start_processor(
   server_pid,
   CustomProcessor,
   ~p"data.local.proc1",
@@ -124,7 +124,7 @@ TreeServer.start_child_processor(
 )
 |> Assert.started()
 
-TreeServer.start_child_processor(
+TreeServer.start_processor(
   server_pid,
   CustomProcessor,
   ~p"data.local.proc2",
@@ -132,7 +132,7 @@ TreeServer.start_child_processor(
 )
 |> Assert.started()
 
-TreeServer.start_child_processor(
+TreeServer.start_processor(
   server_pid,
   CustomProcessor,
   ~p"data.local.proc4",
@@ -140,10 +140,10 @@ TreeServer.start_child_processor(
 )
 |> Assert.started()
 
-TreeServer.start_child_sink(server_pid, CustomSink, ~p"data") |> Assert.started()
-TreeServer.start_child_sink(server_pid, CustomSink, ~p"data") |> Assert.started()
-TreeServer.start_child_sink(server_pid, CustomSink, ~p"data.local.src1") |> Assert.started()
-TreeServer.start_child_sink(server_pid, CustomSink, ~p"data.local.src3") |> Assert.started()
+TreeServer.start_sink(server_pid, CustomSink, ~p"data") |> Assert.started()
+TreeServer.start_sink(server_pid, CustomSink, ~p"data") |> Assert.started()
+TreeServer.start_sink(server_pid, CustomSink, ~p"data.local.src1") |> Assert.started()
+TreeServer.start_sink(server_pid, CustomSink, ~p"data.local.src3") |> Assert.started()
 
 # ---
 
