@@ -135,7 +135,4 @@ TreeServer.query(server_pid, ~p"data")
 |> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
 |> IO.inspect(label: "query on 'data'")
 
-m = TreeServer.query(server_pid, ~p"data")
-IO.inspect(map_size(m), label: "map_size_query_data")
-
 Process.sleep(:infinity)
