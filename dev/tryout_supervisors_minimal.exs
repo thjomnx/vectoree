@@ -13,10 +13,43 @@ defmodule Assert do
   end
 end
 
+defmodule Payload do
+  defstruct [
+    :type,
+    :value,
+    :unit,
+    status: 0,
+    modified: 0
+  ]
+
+  def new(
+        type \\ :none,
+        value \\ :empty,
+        unit \\ :none,
+        status \\ 0,
+        modified \\ 0
+      ) do
+    %Payload{
+      type: type,
+      value: value,
+      unit: unit,
+      status: status,
+      modified: modified
+    }
+  end
+
+  def format(%Payload{type: t, value: v, unit: u, status: s, modified: m}) do
+    "#{v} [#{u}] (#{t}/#{s}/#{m})"
+  end
+
+  def format(nil) do
+    "nil"
+  end
+end
+
 defmodule CustomTimedSource do
   use Vectoree.TreeSource
   import Vectoree.TreePath
-  alias Vectoree.Node
 
   @impl GenServer
   def init(init_arg) do
@@ -25,7 +58,7 @@ defmodule CustomTimedSource do
 
     tree =
       for i <- 1..2, into: %{} do
-        {~p"node_#{i}", Node.new(:int32, System.system_time(), :nanosecond)}
+        {~p"node_#{i}", Payload.new(:int32, System.system_time(), :nanosecond)}
       end
 
     tree = Tree.normalize(tree)
@@ -48,7 +81,7 @@ defmodule CustomTimedSource do
   defp update_tree(tree) do
     tree
     |> Stream.filter(fn {_, node} -> node.value != :empty end)
-    |> Map.new(fn {path, node} -> {path, %Node{node | value: System.system_time()}} end)
+    |> Map.new(fn {path, node} -> {path, %Payload{node | value: System.system_time()}} end)
   end
 end
 
@@ -63,7 +96,7 @@ defmodule CustomProcessor do
 
     tree =
       for i <- 1..2, into: %{} do
-        {~p"node_#{i}", Node.new(:int16, 12345, :none)}
+        {~p"node_#{i}", Payload.new(:int16, 12345, :none)}
       end
 
     tree = Tree.normalize(tree)
@@ -74,7 +107,9 @@ defmodule CustomProcessor do
   @impl Vectoree.TreeProcessor
   def handle_notify(_local_mount_path, local_tree, source_mount_path, source_tree) do
     source_tree
-    |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+    |> Enum.map(fn {k, v} ->
+      "#{TreePath.append(source_mount_path, k)} => #{Payload.format(v)}"
+    end)
     |> Enum.each(&IO.inspect(&1, label: " -proc->"))
 
     local_tree
@@ -95,7 +130,9 @@ defmodule CustomSink do
   @impl Vectoree.TreeSink
   def handle_notify(source_mount_path, source_tree, state) do
     source_tree
-    |> Enum.map(fn {k, v} -> "#{TreePath.append(source_mount_path, k)} => #{v}" end)
+    |> Enum.map(fn {k, v} ->
+      "#{TreePath.append(source_mount_path, k)} => #{Payload.format(v)}"
+    end)
     |> Enum.each(&IO.inspect(&1, label: " -sink->"))
 
     state + 1
@@ -127,7 +164,7 @@ DynamicSupervisor.count_children(TreeSinkSupervisor) |> IO.inspect(label: "sinks
 # ---
 
 TreeServer.query(server_pid, ~p"data")
-|> Map.new(fn {k, v} -> {to_string(k), to_string(v)} end)
+|> Map.new(fn {k, v} -> {to_string(k), Payload.format(v)} end)
 |> IO.inspect(label: "query on 'data'")
 
 Process.sleep(:infinity)

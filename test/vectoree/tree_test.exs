@@ -1,7 +1,7 @@
 defmodule Vectoree.TreeTest do
   use ExUnit.Case, async: true
 
-  alias Vectoree.{Node, Tree, TreePath}
+  alias Vectoree.{Tree, TreePath}
 
   @moduletag :capture_log
 
@@ -10,7 +10,7 @@ defmodule Vectoree.TreeTest do
   setup do
     path = TreePath.new(["a", "b", "c", "d"])
 
-    nodes = for i <- 0..9, into: %{}, do: {TreePath.append(path, "n#{i}"), Node.new()}
+    nodes = for i <- 0..9, into: %{}, do: {TreePath.append(path, "n#{i}"), :payload}
     tree = Tree.normalize(nodes)
 
     {:ok, nodes: nodes, tree: tree}
@@ -29,16 +29,11 @@ defmodule Vectoree.TreeTest do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 
-    :error = Tree.node(tree, TreePath.new([]))
+    :error = Tree.payload(tree, TreePath.new([]))
 
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
-    assert n != nil
-
-    {:ok, %Node{} = n} = Tree.node(tree, path)
-    assert n != nil
-
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
-    assert n != nil
+    {:ok, nil} = Tree.payload(tree, TreePath.root(path))
+    {:ok, nil} = Tree.payload(tree, path)
+    {:ok, :payload} = Tree.payload(tree, TreePath.append(path, "n3"))
   end
 
   test "children", context do
@@ -88,92 +83,18 @@ defmodule Vectoree.TreeTest do
     assert map_size(subtree) == 0
   end
 
-  test "update_value on subtreetree", context do
-    tree = context[:tree]
-
-    tree = Tree.update_value(tree, "foo")
-
-    Map.values(tree) |> Enum.each(fn node -> assert node.value == "foo" end)
-  end
-
-  test "update_value for single path", context do
-    tree = context[:tree]
-    path = TreePath.new(["a", "b", "c", "d"])
-
-    tree = Tree.update_value(tree, path, "bar")
-
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
-    assert n.value == :empty
-
-    {:ok, %Node{} = n} = Tree.node(tree, path)
-    assert n.value == "bar"
-
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
-    assert n.value == :empty
-  end
-
-  test "update_status on subtree", context do
-    tree = context[:tree]
-
-    tree = Tree.update_status(tree, 128)
-
-    Map.values(tree) |> Enum.each(fn node -> assert node.status == 128 end)
-  end
-
-  test "update_status for single path", context do
-    tree = context[:tree]
-    path = TreePath.new(["a", "b", "c", "d"])
-
-    tree = Tree.update_status(tree, path, 128)
-
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
-    assert n.status == 0
-
-    {:ok, %Node{} = n} = Tree.node(tree, path)
-    assert n.status == 128
-
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
-    assert n.status == 0
-  end
-
-  test "update_time_modified on subtree", context do
-    tree = context[:tree]
-    time = System.system_time()
-
-    tree = Tree.update_time_modified(tree, time)
-
-    Map.values(tree) |> Enum.each(fn node -> assert node.modified == time end)
-  end
-
-  test "update_time_modified for single path", context do
-    tree = context[:tree]
-    path = TreePath.new(["a", "b", "c", "d"])
-    time = System.system_time()
-
-    tree = Tree.update_time_modified(tree, path, time)
-
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.root(path))
-    assert n.modified == 0
-
-    {:ok, %Node{} = n} = Tree.node(tree, path)
-    assert n.modified == time
-
-    {:ok, %Node{} = n} = Tree.node(tree, TreePath.append(path, "n3"))
-    assert n.modified == 0
-  end
-
   test "delete", context do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 
     tree = Tree.delete(tree, TreePath.append(path, "n3"))
 
-    :error = Tree.node(tree, TreePath.append(path, "n3"))
+    :error = Tree.payload(tree, TreePath.append(path, "n3"))
     assert map_size(tree) == 13
 
     tree = Tree.delete(tree, path)
 
-    :error = Tree.node(tree, path)
+    :error = Tree.payload(tree, path)
     assert map_size(tree) == 3
 
     tree = Tree.delete(tree, TreePath.root(path))

@@ -12,7 +12,7 @@ defmodule Vectoree.TreeProcessor do
 
       use GenServer
       alias Vectoree.TreeServer
-      alias Vectoree.{Node, Tree, TreePath}
+      alias Vectoree.{Tree, TreePath}
 
       def start_link(init_arg) do
         GenServer.start_link(__MODULE__, init_arg)

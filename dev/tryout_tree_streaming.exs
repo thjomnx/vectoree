@@ -1,6 +1,6 @@
 import Vectoree.TreePath
 
-alias Vectoree.{Node, Tree}
+alias Vectoree.Tree
 
 IO.puts("==> Vectoree.GenServer.chunked_call")
 
@@ -39,7 +39,7 @@ defmodule StreamServer do
   def init(_) do
     tree =
       for i <- 1..100, j <- 1..100, k <- 1..20, into: %{} do
-        {~p"data.#{i}.#{j}.node_#{k}", Node.new(:int32, System.system_time(), :nanosecond)}
+        {~p"data.#{i}.#{j}.node_#{k}", :payload}
       end
 
     state = Tree.normalize(tree)
