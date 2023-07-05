@@ -1,7 +1,6 @@
 defmodule Vectoree.TreeSource do
   @type tree_path :: Vectoree.TreePath.t()
-  @type tree_node :: Vectoree.Node.t()
-  @type tree_map :: %{required(tree_path) => tree_node}
+  @type tree_map :: %{required(tree_path) => any()}
 
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do

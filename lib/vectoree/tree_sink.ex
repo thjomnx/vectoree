@@ -1,7 +1,6 @@
 defmodule Vectoree.TreeSink do
   @type tree_path :: Vectoree.TreePath.t()
-  @type tree_node :: Vectoree.Node.t()
-  @type tree_map :: %{required(tree_path) => tree_node}
+  @type tree_map :: %{required(tree_path) => any()}
 
   @callback handle_notify(tree_path, tree_map, any()) :: any()
 
