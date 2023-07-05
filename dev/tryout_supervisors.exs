@@ -80,8 +80,8 @@ defmodule CustomTimedSource do
 
   defp update_tree(tree) do
     tree
-    |> Stream.filter(fn {_, node} -> node.value != :empty end)
-    |> Map.new(fn {path, node} -> {path, %Payload{node | value: System.system_time()}} end)
+    |> Stream.filter(fn {_, payload} -> payload.value != :empty end)
+    |> Map.new(fn {path, payload} -> {path, %Payload{payload | value: System.system_time()}} end)
   end
 end
 

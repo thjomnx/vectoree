@@ -64,7 +64,7 @@ map_size(map) |> IO.inspect(label: "Size")
 
 # --------------------
 
-IO.puts("==> Tree.node")
+IO.puts("==> Tree.payload")
 Stopwatch.inspect(fn -> Tree.payload(map, ~p"data.23.42.node_11") |> IO.inspect() end)
 
 # --------------------

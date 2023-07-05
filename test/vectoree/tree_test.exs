@@ -25,7 +25,7 @@ defmodule Vectoree.TreeTest do
     assert map_size(context[:tree]) == 14
   end
 
-  test "node", context do
+  test "payload", context do
     tree = context[:tree]
     path = TreePath.new(["a", "b", "c", "d"])
 

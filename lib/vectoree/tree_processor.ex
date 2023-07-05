@@ -19,8 +19,8 @@ defmodule Vectoree.TreeProcessor do
       end
 
       def handle_query(query_path, local_tree) do
-        Map.new(local_tree, fn {local_path, node} ->
-          {TreePath.append(query_path, local_path), node}
+        Map.new(local_tree, fn {local_path, payload} ->
+          {TreePath.append(query_path, local_path), payload}
         end)
       end
 
