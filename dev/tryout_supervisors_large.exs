@@ -57,13 +57,13 @@ defmodule CustomTimedSource do
     TreeServer.mount_source(mount_path)
 
     tree =
-      for i <- 1..100, into: %{} do
+      for i <- 1..250, into: %{} do
         {~p"node_#{i}", Payload.new(:int32, System.system_time(), :nanosecond)}
       end
 
     tree = Tree.normalize(tree)
 
-    Process.send_after(self(), :update, 20000)
+    Process.send_after(self(), :update, Enum.random(10000..20000))
 
     {:ok, %{mount_path: mount_path, local_tree: tree}}
   end
@@ -73,7 +73,7 @@ defmodule CustomTimedSource do
     new_tree = update_tree(tree) |> Tree.normalize()
     TreeServer.notify(mount_path, new_tree)
 
-    Process.send_after(self(), :update, 30000)
+    Process.send_after(self(), :update, Enum.random(10000..30000))
 
     {:noreply, %{state | mount_path: mount_path, local_tree: new_tree}}
   end
@@ -146,7 +146,7 @@ Enum.each(1..2000, fn i ->
   |> Assert.started()
 end)
 
-Enum.each(1..2000//5, fn i ->
+Enum.each(1..2000//4, fn i ->
   TreeServer.start_processor(
     server_pid,
     CustomProcessor,
