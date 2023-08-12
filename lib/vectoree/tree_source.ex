@@ -18,7 +18,7 @@ defmodule Vectoree.TreeSource do
       end
 
       @impl GenServer
-      def handle_call({:query, query_path}, _from, %{local_tree: local_tree} = state) do
+      def handle_call({:query, query_path, opts}, _from, %{local_tree: local_tree} = state) do
         {:reply, handle_query(query_path, local_tree), state}
       end
     end

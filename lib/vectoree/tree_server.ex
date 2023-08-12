@@ -42,8 +42,8 @@ defmodule Vectoree.TreeServer do
     Registry.register(TreeSinkRegistry, :sink, path)
   end
 
-  def query(server, %TreePath{} = path) do
-    GenServer.call(server, {:query, path})
+  def query(server, %TreePath{} = path, opts \\ []) do
+    GenServer.call(server, {:query, path, opts})
   end
 
   def notify(%TreePath{} = path, tree) do
@@ -126,12 +126,12 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def handle_call({:query, path}, _from, %{tree: tree} = state) do
+  def handle_call({:query, path, opts}, _from, %{tree: tree} = state) do
     merged_tree =
       TreeSourceRegistry
       |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
       |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
-      |> Task.async_stream(fn {mpid, mpath} -> query(mpid, mpath) end)
+      |> Task.async_stream(fn {mpid, mpath} -> query(mpid, mpath, opts) end)
       |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
 
     {:reply, merged_tree, state}

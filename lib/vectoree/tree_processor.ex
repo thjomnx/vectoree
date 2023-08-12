@@ -31,7 +31,7 @@ defmodule Vectoree.TreeProcessor do
       defoverridable Vectoree.TreeProcessor
 
       @impl GenServer
-      def handle_call({:query, query_path}, _from, %{local_tree: tree} = state) do
+      def handle_call({:query, query_path, opts}, _from, %{local_tree: tree} = state) do
         {:reply, handle_query(query_path, tree), state}
       end
 
