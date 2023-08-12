@@ -31,8 +31,14 @@ defmodule Vectoree.TreeProcessor do
       defoverridable Vectoree.TreeProcessor
 
       @impl GenServer
-      def handle_call({:query, query_path, opts}, _from, %{local_tree: tree} = state) do
-        {:reply, handle_query(query_path, tree), state}
+      def handle_call({:query, query_path, opts}, {pid, _} = from, %{local_tree: tree} = state) do
+        chunk_size = Keyword.get(opts, :chunk_size, 0)
+        IO.inspect(chunk_size, label: "chunk_size")
+
+        GenServer.reply(from, :ok)
+        send(pid, {:ok, handle_query(query_path, tree)})
+
+        {:noreply, state}
       end
 
       @impl GenServer

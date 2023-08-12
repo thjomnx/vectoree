@@ -43,7 +43,25 @@ defmodule Vectoree.TreeServer do
   end
 
   def query(server, %TreePath{} = path, opts \\ []) do
-    GenServer.call(server, {:query, path, opts})
+    :ok = GenServer.call(server, {:query, path, opts})
+    receive_apply(%{})
+  end
+
+  defp receive_apply(acc) do
+    receive do
+      {:cont, chunk} when is_map(chunk) ->
+        new_acc = Map.merge(acc, chunk)
+        receive_apply(new_acc)
+
+      {:ok, chunk} when map_size(chunk) == 0 ->
+        acc
+
+      {:ok, chunk} when is_map(chunk) ->
+        Map.merge(acc, chunk)
+
+      _ ->
+        :error
+    end
   end
 
   def notify(%TreePath{} = path, tree) do
@@ -126,15 +144,22 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def handle_call({:query, path, opts}, _from, %{tree: tree} = state) do
-    merged_tree =
-      TreeSourceRegistry
-      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
-      |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
-      |> Task.async_stream(fn {mpid, mpath} -> query(mpid, mpath, opts) end)
-      |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
+  def handle_call({:query, path, opts}, {pid, _} = from, %{tree: tree} = state) do
+    chunk_size = Keyword.get(opts, :chunk_size, 0)
+    IO.inspect(chunk_size, label: "chunk_size")
 
-    {:reply, merged_tree, state}
+    GenServer.reply(from, :ok)
+    send(pid, {:cont, tree})
+
+    TreeSourceRegistry
+    |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+    |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
+    |> Task.async_stream(fn {mpid, mpath} -> query(mpid, mpath, opts) end)
+    |> Enum.each(fn {:ok, mtree} -> send(pid, {:cont, mtree}) end)
+
+    send(pid, {:ok, %{}})
+
+    {:noreply, state}
   end
 
   defp mount_conflict?(path) do
