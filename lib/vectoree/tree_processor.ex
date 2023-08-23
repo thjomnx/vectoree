@@ -24,6 +24,16 @@ defmodule Vectoree.TreeProcessor do
         end)
       end
 
+      def handle_query(query_path, local_tree, chunk_size) do
+        path_concatenizer = fn {local_path, payload} ->
+          {TreePath.append(query_path, local_path), payload}
+        end
+
+        local_tree
+        |> Stream.chunk_every(chunk_size)
+        |> Enum.map(fn m -> Map.new(m, path_concatenizer) end)
+      end
+
       def handle_notify(_local_mount_path, local_tree, _source_mount_path, _source_tree) do
         local_tree
       end
@@ -33,10 +43,27 @@ defmodule Vectoree.TreeProcessor do
       @impl GenServer
       def handle_call({:query, query_path, opts}, {pid, _} = from, %{local_tree: tree} = state) do
         chunk_size = Keyword.get(opts, :chunk_size, 0)
-        IO.inspect(chunk_size, label: "chunk_size")
 
         GenServer.reply(from, :ok)
-        send(pid, {:ok, handle_query(query_path, tree)})
+
+        if chunk_size == 0 do
+          send(pid, {:ok, handle_query(query_path, tree)})
+        else
+          chunked_tree = handle_query(query_path, tree, chunk_size)
+
+          last =
+            chunked_tree
+            |> Stream.map(fn
+              chunk when map_size(chunk) == chunk_size -> send(pid, {:cont, chunk})
+              chunk when map_size(chunk) < chunk_size -> send(pid, {:ok, chunk})
+            end)
+            |> Enum.reduce(fn result, _acc -> result end)
+
+          case last do
+            {:cont, _} -> send(pid, {:ok, %{}})
+            {:ok, _} -> last
+          end
+        end
 
         {:noreply, state}
       end

@@ -145,8 +145,7 @@ defmodule Vectoree.TreeServer do
 
   @impl true
   def handle_call({:query, path, opts}, {pid, _} = from, %{tree: tree} = state) do
-    chunk_size = Keyword.get(opts, :chunk_size, 0)
-    IO.inspect(chunk_size, label: "chunk_size")
+    # chunk_size = Keyword.get(opts, :chunk_size, 0)
 
     GenServer.reply(from, :ok)
     send(pid, {:cont, tree})

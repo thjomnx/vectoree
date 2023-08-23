@@ -190,7 +190,7 @@ DynamicSupervisor.count_children(TreeSinkSupervisor) |> IO.inspect(label: "sinks
 
 # ---
 
-TreeServer.query(server_pid, ~p"data")
+TreeServer.query(server_pid, ~p"data", chunk_size: 10)
 |> Map.new(fn {k, v} -> {to_string(k), Payload.format(v)} end)
 |> IO.inspect(label: "query on 'data'")
 
