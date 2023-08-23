@@ -145,10 +145,18 @@ defmodule Vectoree.TreeServer do
 
   @impl true
   def handle_call({:query, path, opts}, {pid, _} = from, %{tree: tree} = state) do
-    # chunk_size = Keyword.get(opts, :chunk_size, 0)
+    chunk_size = Keyword.get(opts, :chunk_size, 0)
 
     GenServer.reply(from, :ok)
-    send(pid, {:cont, tree})
+
+    if chunk_size == 0 do
+      send(pid, {:cont, tree})
+    else
+      tree
+      |> Stream.chunk_every(chunk_size)
+      |> Stream.map(&Map.new/1)
+      |> Enum.each(fn chunk -> send(pid, {:cont, chunk}) end)
+    end
 
     TreeSourceRegistry
     |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
