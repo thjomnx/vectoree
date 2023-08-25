@@ -43,8 +43,8 @@ defmodule Vectoree.TreeServer do
   end
 
   def query(server, %TreePath{} = path, opts \\ []) do
-    :ok = GenServer.call(server, {:query, path, opts})
-    receive_apply(%{}, fn _ctrl, chunk, acc -> Map.merge(acc, chunk) end)
+    fun = fn _ctrl, chunk, acc -> Map.merge(acc, chunk) end
+    query_apply(server, path, fun, opts)
   end
 
   def query_apply(server, %TreePath{} = path, fun, opts \\ []) do
@@ -163,8 +163,10 @@ defmodule Vectoree.TreeServer do
     TreeSourceRegistry
     |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
     |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
-    |> Task.async_stream(fn {mpid, mpath} -> query(mpid, mpath, opts) end)
-    |> Enum.each(fn {:ok, mtree} -> send(pid, {:cont, mtree}) end)
+    |> Task.async_stream(fn {mpid, mpath} ->
+      query_apply(mpid, mpath, fn _, chunk, _ -> send(pid, {:cont, chunk}) end, opts)
+    end)
+    |> Stream.run()
 
     send(pid, {:ok, %{}})
 
