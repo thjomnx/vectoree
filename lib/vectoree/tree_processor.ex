@@ -31,7 +31,7 @@ defmodule Vectoree.TreeProcessor do
 
         local_tree
         |> Stream.chunk_every(chunk_size)
-        |> Enum.map(fn m -> Map.new(m, path_concatenizer) end)
+        |> Enum.map(&Map.new(&1, path_concatenizer))
       end
 
       def handle_notify(_local_mount_path, local_tree, _source_mount_path, _source_tree) do

@@ -24,7 +24,7 @@ defmodule Vectoree.TreeSource do
 
         local_tree
         |> Stream.chunk_every(chunk_size)
-        |> Enum.map(fn m -> Map.new(m, path_concatenizer) end)
+        |> Enum.map(&Map.new(&1, path_concatenizer))
       end
 
       @impl GenServer
