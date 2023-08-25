@@ -57,7 +57,7 @@ defmodule CustomTimedSource do
     TreeServer.mount_source(mount_path)
 
     tree =
-      for i <- 1..250, into: %{} do
+      for i <- 1..1500, into: %{} do
         {~p"node_#{i}", Payload.new(:int32, System.system_time(), :nanosecond)}
       end
 
@@ -168,7 +168,7 @@ DynamicSupervisor.count_children(TreeSinkSupervisor) |> IO.inspect(label: "sinks
 
 # ---
 
-TreeServer.query(server_pid, ~p"data", chunk_size: 100)
+TreeServer.query(server_pid, ~p"data", chunk_size: 1000)
 |> Map.new(fn {k, v} -> {to_string(k), Payload.format(v)} end)
 |> IO.inspect(label: "query on 'data'")
 
