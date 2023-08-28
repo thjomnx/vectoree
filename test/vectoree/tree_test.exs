@@ -108,4 +108,11 @@ defmodule Vectoree.TreeTest do
     tree = Tree.delete(tree, TreePath.new([]))
     assert map_size(tree) == 0
   end
+
+  test "delete with non-existing path", context do
+    tree = context[:tree]
+
+    tree = Tree.delete(tree, TreePath.new(["x"]))
+    assert map_size(tree) == 14
+  end
 end
