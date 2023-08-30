@@ -139,7 +139,12 @@ defmodule CustomSink do
   end
 end
 
-{:ok, server_pid} = TreeServer.start_link()
+base_tree = %{
+  ~p"data.foo" => Payload.new(:atomics, :foo, :none),
+  ~p"data.bar" => Payload.new(:binary, "bar", :none)
+}
+
+{:ok, server_pid} = TreeServer.start_link(tree: base_tree)
 
 TreeServer.start_source(server_pid, CustomTimedSource, ~p"data.local.src1")
 |> Assert.started()

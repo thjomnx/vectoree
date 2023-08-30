@@ -19,7 +19,9 @@ defmodule Vectoree.TreeServer do
   end
 
   def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, [], opts)
+    tree = Keyword.get(opts, :tree, %{})
+
+    GenServer.start_link(__MODULE__, tree, opts)
   end
 
   def start_source(server, module, %TreePath{} = mount_path) do
@@ -78,7 +80,7 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def init(_opts) do
+  def init(tree) do
     children = [
       {Registry, keys: :duplicate, name: TreeSourceRegistry},
       {Registry, keys: :duplicate, name: TreeSinkRegistry},
@@ -89,7 +91,7 @@ defmodule Vectoree.TreeServer do
 
     {:ok, supervisor_pid} = Supervisor.start_link(children, strategy: :one_for_one)
 
-    {:ok, %{supervisor: supervisor_pid, tree: Map.new()}}
+    {:ok, %{supervisor: supervisor_pid, tree: tree}}
   end
 
   @impl true
