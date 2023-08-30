@@ -42,8 +42,28 @@ defmodule Vectoree.TreeServer do
     Registry.register(TreeSinkRegistry, :sink, path)
   end
 
-  def query(server, %TreePath{} = path) do
-    GenServer.call(server, {:query, path})
+  def query(server, %TreePath{} = path, opts \\ []) do
+    fun = fn _ctrl, chunk, acc -> Map.merge(acc, chunk) end
+    query_apply(server, path, fun, opts)
+  end
+
+  def query_apply(server, %TreePath{} = path, fun, opts \\ []) do
+    :ok = GenServer.call(server, {:query, path, opts})
+    receive_apply(%{}, fun)
+  end
+
+  defp receive_apply(acc, fun) do
+    receive do
+      {:cont, chunk} when is_map(chunk) ->
+        new_acc = fun.(:cont, chunk, acc)
+        receive_apply(new_acc, fun)
+
+      {:ok, chunk} when is_map(chunk) ->
+        fun.(:ok, chunk, acc)
+
+      _ ->
+        :error
+    end
   end
 
   def notify(%TreePath{} = path, tree) do
@@ -126,15 +146,31 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def handle_call({:query, path}, _from, %{tree: tree} = state) do
-    merged_tree =
-      TreeSourceRegistry
-      |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
-      |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
-      |> Task.async_stream(fn {mpid, mpath} -> query(mpid, mpath) end)
-      |> Enum.reduce(tree, fn {:ok, mtree}, acc -> Map.merge(acc, mtree) end)
+  def handle_call({:query, path, opts}, {pid, _} = from, %{tree: tree} = state) do
+    chunk_size = Keyword.get(opts, :chunk_size, 0)
 
-    {:reply, merged_tree, state}
+    GenServer.reply(from, :ok)
+
+    if chunk_size == 0 do
+      send(pid, {:cont, tree})
+    else
+      tree
+      |> Stream.chunk_every(chunk_size)
+      |> Stream.map(&Map.new/1)
+      |> Enum.each(fn chunk -> send(pid, {:cont, chunk}) end)
+    end
+
+    TreeSourceRegistry
+    |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
+    |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
+    |> Task.async_stream(fn {mpid, mpath} ->
+      query_apply(mpid, mpath, fn _, chunk, _ -> send(pid, {:cont, chunk}) end, opts)
+    end)
+    |> Stream.run()
+
+    send(pid, {:ok, %{}})
+
+    {:noreply, state}
   end
 
   defp mount_conflict?(path) do
