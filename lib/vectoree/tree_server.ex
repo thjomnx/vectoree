@@ -111,7 +111,7 @@ defmodule Vectoree.TreeServer do
           {:reply, result, state}
       end
     else
-      {:reply, :error, state}
+      {:reply, {:error, "Mount conflict for path '#{mount_path}'"}, state}
     end
   end
 
@@ -132,7 +132,7 @@ defmodule Vectoree.TreeServer do
           {:reply, result, state}
       end
     else
-      {:reply, :error, state}
+      {:reply, {:error, "Mount conflict for path '#{mount_path}'"}, state}
     end
   end
 
@@ -153,10 +153,15 @@ defmodule Vectoree.TreeServer do
 
     GenServer.reply(from, :ok)
 
-    if chunk_size == 0 do
-      send(pid, {:cont, tree})
-    else
+    filtered_tree =
       tree
+      |> Enum.filter(fn {p, _} -> TreePath.starts_with?(p, path) end)
+      |> Map.new()
+
+    if chunk_size == 0 do
+      send(pid, {:cont, filtered_tree})
+    else
+      filtered_tree
       |> Stream.chunk_every(chunk_size)
       |> Stream.map(&Map.new/1)
       |> Enum.each(fn chunk -> send(pid, {:cont, chunk}) end)

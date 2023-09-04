@@ -2,7 +2,7 @@ defmodule Vectoree.TreeServerTest do
   use ExUnit.Case
 
   alias Vectoree.TreeServer
-  alias Vectoree.TreePath
+  alias Vectoree.{Tree, TreePath}
 
   @moduletag :capture_log
 
@@ -44,7 +44,13 @@ defmodule Vectoree.TreeServerTest do
   end
 
   setup do
-    {:ok, pid} = TreeServer.start_link()
+    tree =
+      Tree.normalize(%{
+        TreePath.new(["a", "b", "c", "d"]) => :foo,
+        TreePath.new(["a", "e", "f"]) => :bar
+      })
+
+    {:ok, pid} = TreeServer.start_link(tree: tree)
 
     {:ok, server: pid}
   end
@@ -62,6 +68,11 @@ defmodule Vectoree.TreeServerTest do
     assert TreeServer.args2info(%{mount: mpath, listen: lpath}) == %{mount: mpath, listen: lpath}
 
     assert TreeServer.args2info(%{mount: mpath, listen: lpath, foo: :bar}) == %{
+             mount: mpath,
+             listen: lpath
+           }
+
+    assert TreeServer.args2info(fn -> %{mount: mpath, listen: lpath, foo: :bar} end) == %{
              mount: mpath,
              listen: lpath
            }
@@ -89,5 +100,26 @@ defmodule Vectoree.TreeServerTest do
 
     {:ok, pid} = TreeServer.start_sink(server, TestSink, lpath)
     assert is_pid(pid)
+  end
+
+  test "mount conflict", context do
+    server = context[:server]
+    path = TreePath.new(["a", "x"])
+
+    {:ok, _pid} = TreeServer.start_source(server, TestSource, path)
+    {:error, msg} = TreeServer.start_processor(server, TestProcessor, path, path)
+
+    assert String.contains?(msg, "conflict")
+  end
+
+  test "query", context do
+    server = context[:server]
+    path = TreePath.new(["a"])
+
+    tree = TreeServer.query(server, path)
+    assert map_size(tree) == 6
+
+    tree = TreeServer.query(server, TreePath.append(path, "e")) |> IO.inspect()
+    assert map_size(tree) == 2
   end
 end
