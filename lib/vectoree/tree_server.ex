@@ -46,12 +46,12 @@ defmodule Vectoree.TreeServer do
 
   def query(server, %TreePath{} = path, opts \\ []) do
     fun = fn _ctrl, chunk, acc -> Map.merge(acc, chunk) end
-    query_apply(server, path, fun, opts)
+    query_apply(server, path, %{}, fun, opts)
   end
 
-  def query_apply(server, %TreePath{} = path, fun, opts \\ []) do
+  def query_apply(server, %TreePath{} = path, acc, fun, opts \\ []) do
     :ok = GenServer.call(server, {:query, path, opts})
-    receive_apply(%{}, fun)
+    receive_apply(acc, fun)
   end
 
   defp receive_apply(acc, fun) do
