@@ -171,7 +171,7 @@ defmodule Vectoree.TreeServer do
     |> Registry.select([{{:"$1", :"$2", :"$3"}, [], [{{:"$2", :"$3"}}]}])
     |> Stream.filter(fn {_, mpath} -> TreePath.starts_with?(mpath, path) end)
     |> Task.async_stream(fn {mpid, mpath} ->
-      query_apply(mpid, mpath, fn _, chunk, _ -> send(pid, {:cont, chunk}) end, opts)
+      query_apply(mpid, mpath, nil, fn _, chunk, _ -> send(pid, {:cont, chunk}) end, opts)
     end)
     |> Stream.run()
 
