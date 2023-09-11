@@ -28,12 +28,24 @@ defmodule Vectoree.TreeServer do
     GenServer.call(server, {:add_source, module, mount_path})
   end
 
+  def stop_source(server, pid) do
+    GenServer.call(server, {:remove_source, pid})
+  end
+
   def start_processor(server, module, %TreePath{} = mount_path, %TreePath{} = listen_path) do
     GenServer.call(server, {:add_processor, module, mount_path, listen_path})
   end
 
+  def stop_processor(server, pid) do
+    GenServer.call(server, {:remove_processor, pid})
+  end
+
   def start_sink(server, module, %TreePath{} = listen_path) do
     GenServer.call(server, {:add_sink, module, listen_path})
+  end
+
+  def stop_sink(server, pid) do
+    GenServer.call(server, {:remove_sink, pid})
   end
 
   def mount_source(%TreePath{} = path) do
@@ -116,6 +128,13 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
+  def handle_call({:remove_source, pid}, _from, state) do
+    result = DynamicSupervisor.terminate_child(TreeSourceSupervisor, pid)
+
+    {:reply, result, state}
+  end
+
+  @impl true
   def handle_call({:add_processor, module, mount_path, listen_path}, _from, %{tree: tree} = state) do
     unless mount_conflict?(mount_path) do
       result =
@@ -137,12 +156,26 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
+  def handle_call({:remove_processor, pid}, _from, state) do
+    result = DynamicSupervisor.terminate_child(TreeProcessorSupervisor, pid)
+
+    {:reply, result, state}
+  end
+
+  @impl true
   def handle_call({:add_sink, module, listen_path}, _from, state) do
     result =
       DynamicSupervisor.start_child(
         TreeSinkSupervisor,
         {module, %{listen: listen_path}}
       )
+
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_call({:remove_sink, pid}, _from, state) do
+    result = DynamicSupervisor.terminate_child(TreeSinkSupervisor, pid)
 
     {:reply, result, state}
   end

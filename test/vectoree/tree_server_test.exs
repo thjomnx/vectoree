@@ -82,9 +82,18 @@ defmodule Vectoree.TreeServerTest do
 
   test "start source", context do
     server = context[:server]
+    mpath = ~p"a.r"
 
-    {:ok, pid} = TreeServer.start_source(server, TestSource, TreePath.new(["a", "r"]))
+    {:ok, pid} = TreeServer.start_source(server, TestSource, mpath)
     assert is_pid(pid)
+  end
+
+  test "stop source", context do
+    server = context[:server]
+    mpath = ~p"a.r"
+
+    {:ok, pid} = TreeServer.start_source(server, TestSource, mpath)
+    assert TreeServer.stop_source(server, pid) == :ok
   end
 
   test "start processor", context do
@@ -96,12 +105,29 @@ defmodule Vectoree.TreeServerTest do
     assert is_pid(pid)
   end
 
+  test "stop processor", context do
+    server = context[:server]
+    mpath = ~p"a.r"
+    lpath = ~p"a.l"
+
+    {:ok, pid} = TreeServer.start_processor(server, TestProcessor, mpath, lpath)
+    assert TreeServer.stop_processor(server, pid) == :ok
+  end
+
   test "start sink", context do
     server = context[:server]
     lpath = ~p"a.l"
 
     {:ok, pid} = TreeServer.start_sink(server, TestSink, lpath)
     assert is_pid(pid)
+  end
+
+  test "stop sink", context do
+    server = context[:server]
+    lpath = ~p"a.l"
+
+    {:ok, pid} = TreeServer.start_sink(server, TestSink, lpath)
+    assert TreeServer.stop_sink(server, pid) == :ok
   end
 
   test "mount conflict", context do
