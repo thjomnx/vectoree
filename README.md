@@ -1,6 +1,6 @@
 # Vectoree
 
-A flat tree data structure, i.e. a vectorized tree.
+A flat tree-ish data structure, which is crammed into a bunch of maps, thus a kind of a "vectorized tree".
 
 ## Installation
 
