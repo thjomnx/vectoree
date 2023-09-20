@@ -4,10 +4,9 @@ A flat tree-ish data structure, which is crammed into a bunch of maps, thus a ki
 
 > ⚠ The project is currently in an early state - things may change rapidly.
 
-## Installation
+## Usage
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `vectoree` to your list of dependencies in `mix.exs`:
+Add `vectoree` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
