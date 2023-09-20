@@ -32,7 +32,7 @@ defmodule Vectoree.MixProject do
 
   defp package do
     [
-      name: "Vectoree",
+      name: "vectoree",
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url
