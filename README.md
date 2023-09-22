@@ -11,7 +11,7 @@ Add `vectoree` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:vectoree, "~> 0.0.1"}
+    {:vectoree, "~> 0.0.2"}
   ]
 end
 ```

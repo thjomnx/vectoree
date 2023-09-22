@@ -6,7 +6,7 @@ defmodule Vectoree.MixProject do
   def project do
     [
       app: :vectoree,
-      version: "0.0.1",
+      version: "0.0.2",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -25,7 +25,7 @@ defmodule Vectoree.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.14", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.30.6", only: :dev, runtime: false},
       {:benchee, "~> 1.1", only: :dev}
     ]
   end
