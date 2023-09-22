@@ -8,6 +8,8 @@ defmodule Vectoree.TreeServerTest do
 
   @moduletag :capture_log
 
+  doctest TreeServer
+
   defmodule TestSource do
     use Vectoree.TreeSource
 

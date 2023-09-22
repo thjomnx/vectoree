@@ -1,22 +1,38 @@
 defmodule Vectoree.TreeSource do
+  @moduledoc """
+  A behaviour module for implementing a server, which maintains a local tree
+  (key-value map) as its internal state. A source is supposed to be mounted on a
+  `TreeServer` at a path via the `TreeServer.mount_source/1` function, normally
+  during the `c:init/1` callback. It is then supposed to do two things:
+
+  - Reply to query requests by returning the local tree in a mounted state (done
+    by the `handle_query` functions in this module)
+  - Notify the hosting `TreeServer` about updates in the local tree via the
+    `TreeServer.notify/2` function
+  """
+
   @type tree_path :: Vectoree.TreePath.t()
   @type tree_map :: %{required(tree_path) => any()}
 
+  @doc false
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
       use GenServer
       alias Vectoree.{Tree, TreePath}
 
+      @doc false
       def start_link(init_arg) do
         GenServer.start_link(__MODULE__, init_arg, unquote(Macro.escape(opts)))
       end
 
+      @doc false
       def handle_query(query_path, local_tree) do
         Map.new(local_tree, fn {local_path, payload} ->
           {TreePath.append(query_path, local_path), payload}
         end)
       end
 
+      @doc false
       def handle_query(query_path, local_tree, chunk_size) do
         path_concatenizer = fn {local_path, payload} ->
           {TreePath.append(query_path, local_path), payload}

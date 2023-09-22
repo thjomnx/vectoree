@@ -2,8 +2,8 @@ defmodule Vectoree.TreePath do
   @moduledoc """
   A canonical path implementation for tree structures.
 
-  The functions in this module handle `TreePath` structs, which encapsulate
-  path `segments` in a list in reverse order. There is no distinction between
+  The functions in this module handle `TreePath` structs, which encapsulate path
+  `segments` in a list in reverse order. There is no distinction between
   absolute and relative paths. Printable representations of such a struct use
   the dot `.` character as separator between segments.
 
@@ -21,13 +21,13 @@ defmodule Vectoree.TreePath do
 
   defstruct segments: []
 
-  @doc ~S"""
+  @doc """
   Creates a new struct from a singular `segment` or a list of `segments`.
 
-  An empty singular `segment` results in a struct with zero segments.
-  Lists of `segments` are filtered for empty elements. An empty list,
-  also as a consequence after filtering, results in a struct with zero
-  segments. Whitespace on each `segment` is preserved.
+  An empty singular `segment` results in a struct with zero segments. Lists of
+  `segments` are filtered for empty elements. An empty list, also as a
+  consequence after filtering, results in a struct with zero segments.
+  Whitespace on each `segment` is preserved.
 
   ## Examples
 
@@ -74,11 +74,11 @@ defmodule Vectoree.TreePath do
     %__MODULE__{segments: filtered_segments}
   end
 
-  @doc ~S"""
+  @doc """
   Creates a new struct by wrapping the provided list of `segments`.
 
-  The given list is taken as-is, i.e. without any filtering and by
-  expecting it to be already in reversed order.
+  The given list is taken as-is, i.e. without any filtering and by expecting it
+  to be already in reversed order.
 
   ## Examples
 
@@ -171,22 +171,22 @@ defmodule Vectoree.TreePath do
     |> Enum.filter(&(&1 != ""))
   end
 
-  @doc ~S"""
+  @doc """
   Returns the path separator character as a `BitString`.
   """
   @spec separator() :: String.t()
   def separator(), do: @separator
 
-  @doc ~S"""
+  @doc """
   Returns the path separator character replacement as a `BitString`.
 
-  The replacement is built using the underscore character `_` followed by
-  the Base64 encoded form of the separator character.
+  The replacement is built using the underscore character `_` followed by the
+  Base64 encoded form of the separator character.
   """
   @spec separator_replacement() :: String.t()
   def separator_replacement(), do: @separator_replacement
 
-  @doc ~S"""
+  @doc """
   Returns the level of the path.
 
   The level corresponds to the number of path segments.
@@ -196,7 +196,7 @@ defmodule Vectoree.TreePath do
     length(segments)
   end
 
-  @doc ~S"""
+  @doc """
   Returns a new struct which wraps the root segment of the given path.
 
   ## Examples
@@ -215,7 +215,7 @@ defmodule Vectoree.TreePath do
     path |> rootname |> new
   end
 
-  @doc ~S"""
+  @doc """
   Returns the root segment name of the given path as a `BitString`.
 
   ## Examples
@@ -237,7 +237,7 @@ defmodule Vectoree.TreePath do
     end
   end
 
-  @doc ~S"""
+  @doc """
   Returns a new struct which wraps the parent segment of the given path.
 
   ## Examples
@@ -259,7 +259,7 @@ defmodule Vectoree.TreePath do
     end
   end
 
-  @doc ~S"""
+  @doc """
   Returns a new struct which wraps the base segment of the given path.
 
   ## Examples
@@ -281,7 +281,7 @@ defmodule Vectoree.TreePath do
     end
   end
 
-  @doc ~S"""
+  @doc """
   Returns the base segment name of the given path as a `BitString`.
 
   ## Examples
@@ -303,7 +303,7 @@ defmodule Vectoree.TreePath do
     end
   end
 
-  @doc ~S"""
+  @doc """
   Returns a new struct which wraps a sibling of the given path.
 
   # Examples
@@ -322,7 +322,7 @@ defmodule Vectoree.TreePath do
     end
   end
 
-  @doc ~S"""
+  @doc """
   Returns a new struct with the `segment` being appended on the given path.
 
   ## Examples
@@ -349,7 +349,7 @@ defmodule Vectoree.TreePath do
     (more ++ segments) |> wrap
   end
 
-  @doc ~S"""
+  @doc """
   Checks if a path starts with the given `prefix`.
 
   ## Examples
@@ -373,7 +373,7 @@ defmodule Vectoree.TreePath do
     end
   end
 
-  @doc ~S"""
+  @doc """
   Checks if a path ends with the given `suffix`.
 
   ## Examples

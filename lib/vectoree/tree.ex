@@ -1,17 +1,17 @@
 defmodule Vectoree.Tree do
   @moduledoc """
-  A module containing functions for interacting with the 'tree' data structure,
+  A module containing functions for interacting with the "tree" data structure,
   the latter being a key-value store (map) with keys being `TreePath` structs
   and a payload value of arbitrary type.
   """
 
   alias Vectoree.TreePath
 
-  @doc ~S"""
+  @doc """
   Modifies the given tree starting from the given path, so that all paths are
   present in the key set, which are required to make the tree structure fully
-  populated. In other words, the tree is modified so that each entry in the
-  map has a particular 'parent' entry with the particular parent path.
+  populated. In other words, the tree is modified so that each entry in the map
+  has a particular 'parent' entry with the particular parent path.
 
   Normalized trees are required, e.g. when using the `Tree.children` function.
   In general, navigating through a non-normalized tree does result in
