@@ -15,6 +15,9 @@ defmodule Vectoree.TreePath do
   @separator "."
   @separator_replacement "_" <> Base.encode16(@separator, case: :lower)
 
+  @typedoc """
+  Struct that represents a tree path of segments.
+  """
   @type t :: %__MODULE__{
           segments: list(String.t())
         }
@@ -64,7 +67,7 @@ defmodule Vectoree.TreePath do
     end
   end
 
-  @spec new(segments) :: t when segments: list()
+  @spec new(segments) :: t when segments: list(String.t())
   def new(segments) when is_list(segments) do
     filtered_segments =
       segments
@@ -87,7 +90,7 @@ defmodule Vectoree.TreePath do
       iex> Vectoree.TreePath.wrap(["b4", "lore", "data"])
       %Vectoree.TreePath{segments: ["b4", "lore", "data"]}
   """
-  @spec wrap(segments) :: t when segments: list()
+  @spec wrap(segments) :: t when segments: list(String.t())
   def wrap(segments) when is_list(segments) do
     %__MODULE__{segments: segments}
   end
