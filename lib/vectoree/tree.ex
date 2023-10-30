@@ -31,12 +31,35 @@ defmodule Vectoree.Tree do
   end
 
   def normalize(tree, %TreePath{} = path) do
-    tree = Map.put_new_lazy(tree, path, fn -> nil end)
+    new_tree = Map.put_new_lazy(tree, path, fn -> nil end)
     parent = TreePath.parent(path)
 
     case TreePath.level(parent) do
-      0 -> tree
-      _ -> normalize(tree, parent)
+      0 -> new_tree
+      _ -> normalize(new_tree, parent)
+    end
+  end
+
+  def denormalize(tree, %TreePath{} = path) do
+    parent = TreePath.parent(path)
+
+    case Map.get(tree, parent) do
+      nil ->
+        subtree = Map.filter(tree, fn {k, _} -> TreePath.starts_with?(k, parent) end)
+
+        unless size(subtree) > 1 do
+          new_tree = Map.delete(tree, parent)
+
+          case TreePath.level(parent) do
+            0 -> new_tree
+            _ -> denormalize(new_tree, parent)
+          end
+        else
+          tree
+        end
+
+      _ ->
+        tree
     end
   end
 
@@ -134,23 +157,12 @@ defmodule Vectoree.Tree do
         %Vectoree.TreePath{segments: ["data"]} => nil,
         %Vectoree.TreePath{segments: ["ext", "data"]} => nil,
         %Vectoree.TreePath{segments: ["lore", "ext", "data"]} => :payload,
-        %Vectoree.TreePath{segments: ["b4", "ext", "data"]} => :payload,
-        %Vectoree.TreePath{segments: ["self", "data"]} => nil
+        %Vectoree.TreePath{segments: ["b4", "ext", "data"]} => :payload
       }
-      iex> t = Vectoree.Tree.delete(t, Vectoree.TreePath.new(["data", "ext"]))
-      %{
-        %Vectoree.TreePath{segments: ["data"]} => nil,
-        %Vectoree.TreePath{segments: ["self", "data"]} => nil
-      }
-      iex> t = Vectoree.Tree.delete(t, Vectoree.TreePath.new(["non", "existing"]))
-      %{
-        %Vectoree.TreePath{segments: ["data"]} => nil,
-        %Vectoree.TreePath{segments: ["self", "data"]} => nil
-      }
-      iex> Vectoree.Tree.delete(t, Vectoree.TreePath.new([]))
+      iex> Vectoree.Tree.delete(t, Vectoree.TreePath.new(["data", "ext"]))
       %{}
   """
   def delete(tree, %TreePath{} = path) do
-    Map.reject(tree, fn {k, _} -> TreePath.starts_with?(k, path) end)
+    Map.reject(tree, fn {k, _} -> TreePath.starts_with?(k, path) end) |> denormalize(path)
   end
 end

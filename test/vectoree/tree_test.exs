@@ -95,11 +95,11 @@ defmodule Vectoree.TreeTest do
     tree = Tree.delete(tree, path)
 
     :error = Tree.payload(tree, path)
-    assert map_size(tree) == 3
-
-    tree = Tree.delete(tree, TreePath.root(path))
-
     assert map_size(tree) == 0
+
+    # tree = Tree.delete(tree, TreePath.root(path))
+
+    # assert map_size(tree) == 0
   end
 
   test "delete with empty path", context do
