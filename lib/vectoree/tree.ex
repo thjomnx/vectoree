@@ -8,7 +8,7 @@ defmodule Vectoree.Tree do
   alias Vectoree.TreePath
 
   @doc """
-  Modifies the given tree starting from the given path, so that all paths are
+  Modifies the given tree and starting from the given path (if present), so that all paths are
   present in the key set, which are required to make the tree structure fully
   populated. In other words, the tree is modified so that each entry in the map
   has a particular 'parent' entry with the particular parent path.
@@ -38,6 +38,22 @@ defmodule Vectoree.Tree do
       0 -> new_tree
       _ -> normalize(new_tree, parent)
     end
+  end
+
+  @doc """
+  Modifies the given tree and starting from the given path (if present), so that all paths
+  are removed, which are not required. In other words, the tree is modified so that no entry
+  in the map is a leaf with a `nil` payload.
+
+  ## Examples
+
+      iex> p = Vectoree.TreePath.new(["data", "lore"])
+      iex> t = Vectoree.Tree.normalize(%{p => :payload})
+      iex> Vectoree.Tree.delete(t, p)
+      %{}
+  """
+  def denormalize(tree) do
+    Map.keys(tree) |> Enum.reduce(tree, &denormalize(&2, &1))
   end
 
   def denormalize(tree, %TreePath{} = path) do
