@@ -47,6 +47,11 @@ defmodule Vectoree.TreeServerTest do
     end
   end
 
+  defp assert_down(name) do
+    ref = Process.monitor(name)
+    assert_receive({:DOWN, ^ref, _, _, _})
+  end
+
   setup do
     tree =
       Tree.normalize(%{
@@ -54,7 +59,12 @@ defmodule Vectoree.TreeServerTest do
         ~p"a.e.f" => :bar
       })
 
-    {:ok, pid} = TreeServer.start_link(tree: tree)
+    {:ok, pid} = start_supervised({TreeServer, tree: tree})
+
+    on_exit(fn ->
+      assert_down(TreeSourceRegistry)
+      assert_down(TreeSinkRegistry)
+    end)
 
     {:ok, server: pid}
   end
