@@ -8,7 +8,7 @@ defmodule Vectoree.Tree do
   alias Vectoree.TreePath
 
   @doc """
-  Modifies the given tree starting from the given path, so that all paths are
+  Modifies the given tree and starting from the given path (if present), so that all paths are
   present in the key set, which are required to make the tree structure fully
   populated. In other words, the tree is modified so that each entry in the map
   has a particular 'parent' entry with the particular parent path.
@@ -31,12 +31,39 @@ defmodule Vectoree.Tree do
   end
 
   def normalize(tree, %TreePath{} = path) do
-    tree = Map.put_new_lazy(tree, path, fn -> nil end)
+    new_tree = Map.put_new_lazy(tree, path, fn -> nil end)
     parent = TreePath.parent(path)
 
     case TreePath.level(parent) do
-      0 -> tree
-      _ -> normalize(tree, parent)
+      0 -> new_tree
+      _ -> normalize(new_tree, parent)
+    end
+  end
+
+  @doc """
+  Modifies the given tree and starting from the given path (if present), so that all paths
+  are removed, which are not required. In other words, the tree is modified so that no entry
+  in the map is a leaf with a `nil` payload.
+
+  ## Examples
+
+      iex> p = Vectoree.TreePath.new(["data", "lore"])
+      iex> t = Vectoree.Tree.normalize(%{p => nil})
+      iex> Vectoree.Tree.denormalize(t)
+      %{}
+  """
+  def denormalize(tree) do
+    Map.reject(tree, fn {_, value} -> value == nil end) |> normalize()
+  end
+
+  def denormalize(tree, path) do
+    if TreePath.level(path) > 0 do
+      case Map.fetch(tree, path) do
+        {:ok, nil} -> Map.delete(tree, path) |> denormalize(TreePath.parent(path))
+        _ -> tree
+      end
+    else
+      tree
     end
   end
 
@@ -134,23 +161,12 @@ defmodule Vectoree.Tree do
         %Vectoree.TreePath{segments: ["data"]} => nil,
         %Vectoree.TreePath{segments: ["ext", "data"]} => nil,
         %Vectoree.TreePath{segments: ["lore", "ext", "data"]} => :payload,
-        %Vectoree.TreePath{segments: ["b4", "ext", "data"]} => :payload,
-        %Vectoree.TreePath{segments: ["self", "data"]} => nil
+        %Vectoree.TreePath{segments: ["b4", "ext", "data"]} => :payload
       }
-      iex> t = Vectoree.Tree.delete(t, Vectoree.TreePath.new(["data", "ext"]))
-      %{
-        %Vectoree.TreePath{segments: ["data"]} => nil,
-        %Vectoree.TreePath{segments: ["self", "data"]} => nil
-      }
-      iex> t = Vectoree.Tree.delete(t, Vectoree.TreePath.new(["non", "existing"]))
-      %{
-        %Vectoree.TreePath{segments: ["data"]} => nil,
-        %Vectoree.TreePath{segments: ["self", "data"]} => nil
-      }
-      iex> Vectoree.Tree.delete(t, Vectoree.TreePath.new([]))
+      iex> Vectoree.Tree.delete(t, Vectoree.TreePath.new(["data", "ext"]))
       %{}
   """
   def delete(tree, %TreePath{} = path) do
-    Map.reject(tree, fn {k, _} -> TreePath.starts_with?(k, path) end)
+    Map.reject(tree, fn {key, _} -> TreePath.starts_with?(key, path) end) |> denormalize()
   end
 end

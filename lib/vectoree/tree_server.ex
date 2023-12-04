@@ -286,11 +286,8 @@ defmodule Vectoree.TreeServer do
         )
 
       case result do
-        {:ok, _} ->
-          {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
-
-        _ ->
-          {:reply, result, state}
+        {:ok, _} -> {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+        _ -> {:reply, result, state}
       end
     else
       {:reply, {:error, "Mount conflict for path '#{mount_path}'"}, state}
@@ -298,10 +295,14 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def handle_call({:remove_source, pid}, _from, state) do
+  def handle_call({:remove_source, pid}, _from, %{tree: tree} = state) do
+    mount_path = Registry.values(TreeSourceRegistry, :source, pid) |> List.first()
     result = DynamicSupervisor.terminate_child(TreeSourceSupervisor, pid)
 
-    {:reply, result, state}
+    case result do
+      :ok -> {:reply, result, %{state | tree: Tree.denormalize(tree, mount_path)}}
+      _ -> {:reply, result, state}
+    end
   end
 
   @impl true
@@ -314,11 +315,8 @@ defmodule Vectoree.TreeServer do
         )
 
       case result do
-        {:ok, _} ->
-          {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
-
-        _ ->
-          {:reply, result, state}
+        {:ok, _} -> {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
+        _ -> {:reply, result, state}
       end
     else
       {:reply, {:error, "Mount conflict for path '#{mount_path}'"}, state}
@@ -326,10 +324,14 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def handle_call({:remove_processor, pid}, _from, state) do
+  def handle_call({:remove_processor, pid}, _from, %{tree: tree} = state) do
+    mount_path = Registry.values(TreeSourceRegistry, :source, pid) |> List.first()
     result = DynamicSupervisor.terminate_child(TreeProcessorSupervisor, pid)
 
-    {:reply, result, state}
+    case result do
+      :ok -> {:reply, result, %{state | tree: Tree.denormalize(tree, mount_path)}}
+      _ -> {:reply, result, state}
+    end
   end
 
   @impl true
