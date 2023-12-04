@@ -48,34 +48,22 @@ defmodule Vectoree.Tree do
   ## Examples
 
       iex> p = Vectoree.TreePath.new(["data", "lore"])
-      iex> t = Vectoree.Tree.normalize(%{p => :payload})
-      iex> Vectoree.Tree.delete(t, p)
+      iex> t = Vectoree.Tree.normalize(%{p => nil})
+      iex> Vectoree.Tree.denormalize(t)
       %{}
   """
   def denormalize(tree) do
-    Map.keys(tree) |> Enum.reduce(tree, &denormalize(&2, &1))
+    Map.reject(tree, fn {_, value} -> value == nil end) |> normalize()
   end
 
-  def denormalize(tree, %TreePath{} = path) do
-    parent = TreePath.parent(path)
-
-    case Map.get(tree, parent) do
-      nil ->
-        subtree = Map.filter(tree, fn {k, _} -> TreePath.starts_with?(k, parent) end)
-
-        unless size(subtree) > 1 do
-          new_tree = Map.delete(tree, parent)
-
-          case TreePath.level(parent) do
-            0 -> new_tree
-            _ -> denormalize(new_tree, parent)
-          end
-        else
-          tree
-        end
-
-      _ ->
-        tree
+  def denormalize(tree, path) do
+    if TreePath.level(path) > 0 do
+      case Map.fetch(tree, path) do
+        {:ok, nil} -> Map.delete(tree, path) |> denormalize(TreePath.parent(path))
+        _ -> tree
+      end
+    else
+      tree
     end
   end
 
@@ -179,6 +167,6 @@ defmodule Vectoree.Tree do
       %{}
   """
   def delete(tree, %TreePath{} = path) do
-    Map.reject(tree, fn {k, _} -> TreePath.starts_with?(k, path) end) |> denormalize(path)
+    Map.reject(tree, fn {key, _} -> TreePath.starts_with?(key, path) end) |> denormalize()
   end
 end

@@ -20,6 +20,56 @@ defmodule Vectoree.TreeTest do
     assert is_list(Tree.module_info())
   end
 
+  test "denormalize" do
+    tree =
+      %{
+        TreePath.new(["a", "b", "c", "d0"]) => :payload,
+        TreePath.new(["a", "b", "c", "d1"]) => :payload,
+        TreePath.new(["a", "b", "c", "d2"]) => :payload,
+        TreePath.new(["a", "b", "e"]) => :payload,
+        TreePath.new(["a", "b", "e", "f"]) => :payload,
+        TreePath.new(["a", "b", "g", "h", "i0"]) => :payload,
+        TreePath.new(["a", "b", "g", "h", "i1"]) => nil
+      }
+      |> Tree.normalize()
+
+    assert map_size(tree) == 12
+
+    tree = Tree.denormalize(tree)
+    assert map_size(tree) == 11
+
+    tree = Map.delete(tree, TreePath.new(["a", "b", "g", "h", "i0"]))
+    assert map_size(tree) == 10
+
+    tree = Tree.denormalize(tree)
+    assert map_size(tree) == 8
+
+    tree = Map.delete(tree, TreePath.new(["a", "b", "e", "f"]))
+    assert map_size(tree) == 7
+
+    tree = Tree.denormalize(tree)
+    assert map_size(tree) == 7
+
+    tree = Map.delete(tree, TreePath.new(["a", "b", "e"]))
+    assert map_size(tree) == 6
+
+    tree = Tree.denormalize(tree)
+    assert map_size(tree) == 6
+
+    tree = Map.delete(tree, TreePath.new(["a", "b", "c", "d1"]))
+    assert map_size(tree) == 5
+
+    tree = Tree.denormalize(tree)
+    assert map_size(tree) == 5
+
+    tree = Map.delete(tree, TreePath.new(["a", "b", "c", "d0"]))
+    tree = Map.delete(tree, TreePath.new(["a", "b", "c", "d2"]))
+    assert map_size(tree) == 3
+
+    tree = Tree.denormalize(tree)
+    assert map_size(tree) == 0
+  end
+
   test "size", context do
     assert map_size(context[:nodes]) == 10
     assert map_size(context[:tree]) == 14
