@@ -76,7 +76,7 @@ defmodule Vectoree.TreeServer do
     tree = Keyword.get(opts, :tree, %{})
 
     unless is_map(tree) do
-      raise("Keyword item :tree does not carry a map")
+      {:error, "Keyword item :tree does not carry a map"}
     end
 
     GenServer.start_link(__MODULE__, tree, opts)
