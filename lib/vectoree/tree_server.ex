@@ -17,7 +17,7 @@ defmodule Vectoree.TreeServer do
   """
 
   use GenServer
-  alias Vectoree.{Tree, TreePath}
+  alias Vectoree.TreePath
 
   @type path :: %TreePath{}
 
@@ -277,7 +277,7 @@ defmodule Vectoree.TreeServer do
   end
 
   @impl true
-  def handle_call({:add_source, module, mount_path}, _from, %{tree: tree} = state) do
+  def handle_call({:add_source, module, mount_path}, _from, state) do
     unless mount_conflict?(mount_path) do
       result =
         DynamicSupervisor.start_child(
@@ -285,28 +285,21 @@ defmodule Vectoree.TreeServer do
           {module, %{mount: mount_path}}
         )
 
-      case result do
-        {:ok, _} -> {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
-        _ -> {:reply, result, state}
-      end
+      {:reply, result, state}
     else
       {:reply, {:error, "Mount conflict for path '#{mount_path}'"}, state}
     end
   end
 
   @impl true
-  def handle_call({:remove_source, pid}, _from, %{tree: tree} = state) do
-    mount_path = Registry.values(TreeSourceRegistry, :source, pid) |> List.first()
+  def handle_call({:remove_source, pid}, _from, state) do
     result = DynamicSupervisor.terminate_child(TreeSourceSupervisor, pid)
 
-    case result do
-      :ok -> {:reply, result, %{state | tree: Tree.denormalize(tree, mount_path)}}
-      _ -> {:reply, result, state}
-    end
+    {:reply, result, state}
   end
 
   @impl true
-  def handle_call({:add_processor, module, mount_path, listen_path}, _from, %{tree: tree} = state) do
+  def handle_call({:add_processor, module, mount_path, listen_path}, _from, state) do
     unless mount_conflict?(mount_path) do
       result =
         DynamicSupervisor.start_child(
@@ -314,24 +307,17 @@ defmodule Vectoree.TreeServer do
           {module, %{mount: mount_path, listen: listen_path}}
         )
 
-      case result do
-        {:ok, _} -> {:reply, result, %{state | tree: Tree.normalize(tree, mount_path)}}
-        _ -> {:reply, result, state}
-      end
+      {:reply, result, state}
     else
       {:reply, {:error, "Mount conflict for path '#{mount_path}'"}, state}
     end
   end
 
   @impl true
-  def handle_call({:remove_processor, pid}, _from, %{tree: tree} = state) do
-    mount_path = Registry.values(TreeSourceRegistry, :source, pid) |> List.first()
+  def handle_call({:remove_processor, pid}, _from, state) do
     result = DynamicSupervisor.terminate_child(TreeProcessorSupervisor, pid)
 
-    case result do
-      :ok -> {:reply, result, %{state | tree: Tree.denormalize(tree, mount_path)}}
-      _ -> {:reply, result, state}
-    end
+    {:reply, result, state}
   end
 
   @impl true

@@ -167,6 +167,6 @@ defmodule Vectoree.Tree do
       %{}
   """
   def delete(tree, %TreePath{} = path) do
-    Map.reject(tree, fn {key, _} -> TreePath.starts_with?(key, path) end) |> denormalize()
+    Map.reject(tree, fn {key, _} -> TreePath.starts_with?(key, path) end)
   end
 end
