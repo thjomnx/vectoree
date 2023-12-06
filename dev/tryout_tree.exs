@@ -64,6 +64,12 @@ map_size(map) |> IO.inspect(label: "Size")
 
 # --------------------
 
+IO.puts("==> Tree.denormalize")
+map = Stopwatch.inspect(fn -> Tree.denormalize(map) end)
+map_size(map) |> IO.inspect(label: "Size")
+
+# --------------------
+
 IO.puts("==> Tree.payload")
 Stopwatch.inspect(fn -> Tree.payload(map, ~p"data.23.42.node_11") |> IO.inspect() end)
 
