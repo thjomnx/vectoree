@@ -74,9 +74,9 @@ defmodule Vectoree.Tree do
   ## Examples
 
       iex> p = Vectoree.TreePath.new(["data", "lore"])
-      iex> t = %{p => :payload} |> Vectoree.Tree.normalize()
+      iex> t = %{p => :payload}
       iex> Vectoree.Tree.size(t)
-      2
+      1
   """
   def size(tree) do
     map_size(tree)
@@ -88,7 +88,7 @@ defmodule Vectoree.Tree do
   ## Examples
 
       iex> p = Vectoree.TreePath.new(["data", "lore"])
-      iex> t = %{p => :payload} |> Vectoree.Tree.normalize()
+      iex> t = %{p => :payload}
       iex> Vectoree.Tree.payload(t, p)
       {:ok, :payload}
   """
@@ -98,16 +98,15 @@ defmodule Vectoree.Tree do
 
   @doc """
   Returns a map, filtered from the given tree, which contains the children for
-  the given path including the children's parent entry.
+  the given path including the children's parent entry (if present).
 
   ## Examples
 
       iex> p0 = Vectoree.TreePath.new(["data", "ext", "lore"])
       iex> p1 = Vectoree.TreePath.new(["data", "ext", "b4"])
-      iex> t = %{p0 => :payload, p1 => :payload} |> Vectoree.Tree.normalize()
+      iex> t = %{p0 => :payload, p1 => :payload}
       iex> Vectoree.Tree.children(t, Vectoree.TreePath.new(["data", "ext"]))
       %{
-        %Vectoree.TreePath{segments: ["ext", "data"]} => nil,
         %Vectoree.TreePath{segments: ["lore", "ext", "data"]} => :payload,
         %Vectoree.TreePath{segments: ["b4", "ext", "data"]} => :payload
       }
@@ -129,10 +128,9 @@ defmodule Vectoree.Tree do
       iex> p0 = Vectoree.TreePath.new(["data", "ext", "lore"])
       iex> p1 = Vectoree.TreePath.new(["data", "ext", "b4"])
       iex> p2 = Vectoree.TreePath.new(["data", "self", "spot"])
-      iex> t = %{p0 => :payload, p1 => :payload, p2 => :payload} |> Vectoree.Tree.normalize()
+      iex> t = %{p0 => :payload, p1 => :payload, p2 => :payload}
       iex> Vectoree.Tree.subtree(t, Vectoree.TreePath.new(["data", "ext"]))
       %{
-        %Vectoree.TreePath{segments: ["ext", "data"]} => nil,
         %Vectoree.TreePath{segments: ["lore", "ext", "data"]} => :payload,
         %Vectoree.TreePath{segments: ["b4", "ext", "data"]} => :payload
       }
@@ -148,18 +146,14 @@ defmodule Vectoree.Tree do
   the function either deletes a single entry or a subtree (including the
   subtree's root entry).
 
-  Entries which have been added as a result of normalization are kept.
-
   ## Examples
 
       iex> p0 = Vectoree.TreePath.new(["data", "ext", "lore"])
       iex> p1 = Vectoree.TreePath.new(["data", "ext", "b4"])
       iex> p2 = Vectoree.TreePath.new(["data", "self", "spot"])
-      iex> t = %{p0 => :payload, p1 => :payload, p2 => :payload} |> Vectoree.Tree.normalize()
+      iex> t = %{p0 => :payload, p1 => :payload, p2 => :payload}
       iex> t = Vectoree.Tree.delete(t, Vectoree.TreePath.new(["data", "self", "spot"]))
       %{
-        %Vectoree.TreePath{segments: ["data"]} => nil,
-        %Vectoree.TreePath{segments: ["ext", "data"]} => nil,
         %Vectoree.TreePath{segments: ["lore", "ext", "data"]} => :payload,
         %Vectoree.TreePath{segments: ["b4", "ext", "data"]} => :payload
       }
@@ -167,6 +161,6 @@ defmodule Vectoree.Tree do
       %{}
   """
   def delete(tree, %TreePath{} = path) do
-    Map.reject(tree, fn {key, _} -> TreePath.starts_with?(key, path) end) |> denormalize()
+    Map.reject(tree, fn {key, _} -> TreePath.starts_with?(key, path) end)
   end
 end

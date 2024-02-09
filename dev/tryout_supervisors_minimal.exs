@@ -61,8 +61,6 @@ defmodule CustomTimedSource do
         {~p"node_#{i}", Payload.new(:int32, System.system_time(), :nanosecond)}
       end
 
-    tree = Tree.normalize(tree)
-
     Process.send_after(self(), :update, 2000)
 
     {:ok, %{mount_path: mount_path, local_tree: tree}}
@@ -70,7 +68,7 @@ defmodule CustomTimedSource do
 
   @impl GenServer
   def handle_info(:update, %{mount_path: mount_path, local_tree: tree} = state) do
-    new_tree = update_tree(tree) |> Tree.normalize()
+    new_tree = update_tree(tree)
     TreeServer.notify(mount_path, new_tree)
 
     Process.send_after(self(), :update, 2000)
@@ -98,8 +96,6 @@ defmodule CustomProcessor do
       for i <- 1..2, into: %{} do
         {~p"node_#{i}", Payload.new(:int16, 12345, :none)}
       end
-
-    tree = Tree.normalize(tree)
 
     {:ok, %{mount_path: mount_path, local_tree: tree}}
   end

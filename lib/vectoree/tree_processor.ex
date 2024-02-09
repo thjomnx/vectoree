@@ -99,7 +99,6 @@ defmodule Vectoree.TreeProcessor do
 
         new_local_tree =
           handle_notify(local_mount_path, local_tree, source_mount_path, source_tree)
-          |> Tree.normalize()
 
         TreeServer.notify(local_mount_path, new_local_tree)
 

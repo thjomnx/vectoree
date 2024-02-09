@@ -10,17 +10,16 @@ defmodule Vectoree.TreeTest do
   setup do
     path = TreePath.new(["a", "b", "c", "d"])
 
-    nodes = for i <- 0..9, into: %{}, do: {TreePath.append(path, "n#{i}"), :payload}
-    tree = Tree.normalize(nodes)
+    tree = for i <- 0..9, into: %{}, do: {TreePath.append(path, "n#{i}"), :payload}
 
-    {:ok, nodes: nodes, tree: tree}
+    {:ok, tree: tree}
   end
 
   test "module exists" do
     assert is_list(Tree.module_info())
   end
 
-  test "denormalize" do
+  test "normalization" do
     tree =
       %{
         TreePath.new(["a", "b", "c", "d0"]) => :payload,
@@ -71,8 +70,7 @@ defmodule Vectoree.TreeTest do
   end
 
   test "size", context do
-    assert map_size(context[:nodes]) == 10
-    assert map_size(context[:tree]) == 14
+    assert map_size(context[:tree]) == 10
   end
 
   test "payload", context do
@@ -80,9 +78,9 @@ defmodule Vectoree.TreeTest do
     path = TreePath.new(["a", "b", "c", "d"])
 
     :error = Tree.payload(tree, TreePath.new([]))
+    :error = Tree.payload(tree, TreePath.root(path))
+    :error = Tree.payload(tree, path)
 
-    {:ok, nil} = Tree.payload(tree, TreePath.root(path))
-    {:ok, nil} = Tree.payload(tree, path)
     {:ok, :payload} = Tree.payload(tree, TreePath.append(path, "n3"))
   end
 
@@ -90,19 +88,19 @@ defmodule Vectoree.TreeTest do
     tree = context[:tree]
 
     children = Tree.children(tree, TreePath.new([]))
-    assert map_size(children) == 1
+    assert map_size(children) == 0
 
     children = Tree.children(tree, TreePath.new(["a"]))
-    assert map_size(children) == 2
+    assert map_size(children) == 0
 
     children = Tree.children(tree, TreePath.new(["a", "b"]))
-    assert map_size(children) == 2
+    assert map_size(children) == 0
 
     children = Tree.children(tree, TreePath.new(["a", "b", "c"]))
-    assert map_size(children) == 2
+    assert map_size(children) == 0
 
     children = Tree.children(tree, TreePath.new(["a", "b", "c", "d"]))
-    assert map_size(children) == 11
+    assert map_size(children) == 10
 
     children = Tree.children(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
     assert map_size(children) == 1
@@ -115,16 +113,16 @@ defmodule Vectoree.TreeTest do
     tree = context[:tree]
 
     subtree = Tree.subtree(tree, TreePath.new([]))
-    assert map_size(subtree) == 14
+    assert map_size(subtree) == 10
 
     subtree = Tree.subtree(tree, TreePath.new(["a", "b"]))
-    assert map_size(subtree) == 13
+    assert map_size(subtree) == 10
 
     subtree = Tree.subtree(tree, TreePath.new(["a", "b", "c"]))
-    assert map_size(subtree) == 12
+    assert map_size(subtree) == 10
 
     subtree = Tree.subtree(tree, TreePath.new(["a", "b", "c", "d"]))
-    assert map_size(subtree) == 11
+    assert map_size(subtree) == 10
 
     subtree = Tree.subtree(tree, TreePath.new(["a", "b", "c", "d", "n5"]))
     assert map_size(subtree) == 1
@@ -140,7 +138,7 @@ defmodule Vectoree.TreeTest do
     tree = Tree.delete(tree, TreePath.append(path, "n3"))
 
     :error = Tree.payload(tree, TreePath.append(path, "n3"))
-    assert map_size(tree) == 13
+    assert map_size(tree) == 9
 
     tree = Tree.delete(tree, path)
 
@@ -163,6 +161,6 @@ defmodule Vectoree.TreeTest do
     tree = context[:tree]
 
     tree = Tree.delete(tree, TreePath.new(["x"]))
-    assert map_size(tree) == 14
+    assert map_size(tree) == 10
   end
 end
