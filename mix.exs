@@ -25,7 +25,7 @@ defmodule Vectoree.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.31.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.37", only: :dev, runtime: false},
       {:benchee, "~> 1.3", only: :dev}
     ]
   end
